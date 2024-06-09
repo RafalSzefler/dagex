@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "utils/immutable_string",
+    "dagex_abstractions",
+]
+resolver = "2"
+
+[workspace.dependencies]
+getrandom = "0.2"
+rand = "0.8.5"
+ctor = "0.2.8"

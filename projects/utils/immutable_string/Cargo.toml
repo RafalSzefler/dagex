@@ -1,0 +1,17 @@
+[package]
+name = "immutable_string"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
+
+[dependencies]
+ctor = { workspace = true, optional = true }
+getrandom = { workspace = true, optional = true }
+
+[dev-dependencies]
+rand.workspace = true
+
+[features]
+default = ["use-ctor", "use-getrandom"]
+use-ctor = ["dep:ctor"]
+use-getrandom = ["dep:getrandom"]
