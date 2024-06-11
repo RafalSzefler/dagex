@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dagex_abstractions"
+name = "dagex_core"
 version = "0.1.0"
 dependencies = [
  "smallvec",

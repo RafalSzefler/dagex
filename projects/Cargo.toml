@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "utils/immutable_string",
-    "dagex_abstractions",
+    "dagex_core",
 ]
 resolver = "2"
 
