@@ -7,6 +7,11 @@ members = [
 ]
 resolver = "2"
 
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
+
 [workspace.dependencies]
 getrandom = "0.2"
 rand = "0.8.5"

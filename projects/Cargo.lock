@@ -20,21 +20,21 @@ dependencies = [
 
 [[package]]
 name = "dagex_core"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "smallvec",
 ]
 
 [[package]]
 name = "dagex_core_algorithms"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "dagex_core",
 ]
 
 [[package]]
 name = "dagex_phylo"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "dagex_core",
  "immutable_string",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "immutable_string"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "ctor",
  "getrandom",

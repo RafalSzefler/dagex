@@ -1,8 +1,8 @@
 [package]
 name = "dagex_phylo"
-version = "0.1.0"
-edition = "2021"
-authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
 
 [dependencies]
 dagex_core = { path = "../dagex_core" }
