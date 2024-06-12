@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use dagex_core::{DirectedGraph, DirectedGraphConstructionResult, Node};
+use dagex_core::{DirectedGraph, DirectedGraphFromResult, Node};
 
 use crate::{PhylogeneticNetworkDTO, Taxon};
 
@@ -12,7 +12,7 @@ pub struct PhylogeneticNetwork {
     all_leaves_labeled: bool,
 }
 
-pub enum PhyloConstructionResult {
+pub enum PhylogeneticNetworkFromResult {
     /// Passed graph is a phylogenetic network. Consumes passed value.
     Ok(PhylogeneticNetwork),
 
@@ -30,10 +30,10 @@ pub enum PhyloConstructionResult {
 
     /// Internal error of graph construction. The internal value is guaranteed
     /// to not be `DirectedGraphConstructionResult::Ok`.
-    GraphError(DirectedGraphConstructionResult),
+    GraphError(DirectedGraphFromResult),
 }
 
-impl PhyloConstructionResult {
+impl PhylogeneticNetworkFromResult {
     /// Unwraps `PhyloConstructionResult::Ok` value.
     /// 
     /// # Panics
@@ -41,7 +41,7 @@ impl PhyloConstructionResult {
     #[inline(always)]
     pub fn unwrap(self) -> PhylogeneticNetwork {
         match self {
-            PhyloConstructionResult::Ok(graph) => graph,
+            PhylogeneticNetworkFromResult::Ok(graph) => graph,
             _ => panic!("PhyloConstructionResult is not Ok."),
         }
     }
@@ -64,19 +64,19 @@ impl PhylogeneticNetwork {
     }
 
     pub fn from_graph_and_taxa(graph: DirectedGraph, taxa: HashMap<Node, Taxon>)
-        -> PhyloConstructionResult
+        -> PhylogeneticNetworkFromResult
     {
         let props = graph.get_basic_properties();
         if !props.acyclic {
-            return PhyloConstructionResult::NotAcyclic(graph);
+            return PhylogeneticNetworkFromResult::NotAcyclic(graph);
         }
 
         if !props.rooted {
-            return PhyloConstructionResult::NotRooted(graph);
+            return PhylogeneticNetworkFromResult::NotRooted(graph);
         }
 
         if !props.binary {
-            return PhyloConstructionResult::NotBinary(graph);
+            return PhylogeneticNetworkFromResult::NotBinary(graph);
         }
 
         let mut taxa_nodes: HashSet<Node> = taxa.keys().copied().collect();
@@ -88,7 +88,7 @@ impl PhylogeneticNetwork {
         }
 
         if !taxa_nodes.is_empty() {
-            return PhyloConstructionResult::TaxaNotLeaves(graph);
+            return PhylogeneticNetworkFromResult::TaxaNotLeaves(graph);
         }
 
         let all_leaves_labeled = leaves.is_empty();
@@ -97,12 +97,12 @@ impl PhylogeneticNetwork {
             Self::from_unchecked(graph, taxa, all_leaves_labeled)
         };
 
-        return PhyloConstructionResult::Ok(result);
+        return PhylogeneticNetworkFromResult::Ok(result);
     }
 
-    pub fn from_dto(dto: &PhylogeneticNetworkDTO) -> PhyloConstructionResult {
+    pub fn from_dto(dto: &PhylogeneticNetworkDTO) -> PhylogeneticNetworkFromResult {
         match DirectedGraph::from_dto(dto.get_graph()) {
-            DirectedGraphConstructionResult::Ok(graph) => {
+            DirectedGraphFromResult::Ok(graph) => {
                 let taxa: HashMap<Node, Taxon>
                     = dto.get_taxa()
                         .iter()
@@ -111,7 +111,7 @@ impl PhylogeneticNetwork {
                 Self::from_graph_and_taxa(graph, taxa)
             },
             err => {
-                PhyloConstructionResult::GraphError(err)
+                PhylogeneticNetworkFromResult::GraphError(err)
             }
         }
     }
@@ -173,7 +173,7 @@ mod tests {
             HashMap::new());
         
         let result = PhylogeneticNetwork::from_dto(&dto);
-        assert!(matches!(result, PhyloConstructionResult::GraphError(DirectedGraphConstructionResult::EmptyGraph)));
+        assert!(matches!(result, PhylogeneticNetworkFromResult::GraphError(DirectedGraphFromResult::EmptyGraph)));
     }
 
     #[test]
@@ -183,7 +183,7 @@ mod tests {
             HashMap::from_iter([(1, imm("test"))]));
         
         let result = PhylogeneticNetwork::from_dto(&dto);
-        assert!(matches!(result, PhyloConstructionResult::GraphError(DirectedGraphConstructionResult::EmptyGraph)));
+        assert!(matches!(result, PhylogeneticNetworkFromResult::GraphError(DirectedGraphFromResult::EmptyGraph)));
     }
 
     #[test]
@@ -193,7 +193,7 @@ mod tests {
             HashMap::from_iter([(1, imm("test"))]));
         
         let result = PhylogeneticNetwork::from_dto(&dto);
-        assert!(matches!(result, PhyloConstructionResult::TaxaNotLeaves(_)));
+        assert!(matches!(result, PhylogeneticNetworkFromResult::TaxaNotLeaves(_)));
     }
 
     #[test]
@@ -203,7 +203,7 @@ mod tests {
             HashMap::from_iter([(0, imm("test2"))]));
         
         let result = PhylogeneticNetwork::from_dto(&dto);
-        assert!(matches!(result, PhyloConstructionResult::TaxaNotLeaves(_)));
+        assert!(matches!(result, PhylogeneticNetworkFromResult::TaxaNotLeaves(_)));
     }
 
     #[test]
@@ -213,7 +213,7 @@ mod tests {
             HashMap::from_iter([(1, imm("a")), (2, imm("xyz"))]));
         
         let result = PhylogeneticNetwork::from_dto(&dto);
-        assert!(matches!(result, PhyloConstructionResult::Ok(_)));
+        assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)));
         let network = result.unwrap();
         let taxa = network.get_taxa();
         assert_eq!(taxa.len(), 2);

@@ -14,5 +14,5 @@ mod genes_over_species;
 
 pub use taxon::Taxon;
 pub use phylogenetic_network_dto::PhylogeneticNetworkDTO;
-pub use phylogenetic_network::{PhylogeneticNetwork, PhyloConstructionResult};
+pub use phylogenetic_network::{PhylogeneticNetwork, PhylogeneticNetworkFromResult};
 pub use genes_over_species::{GenesOverSpecies};

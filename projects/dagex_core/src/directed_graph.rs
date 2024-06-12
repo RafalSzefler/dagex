@@ -119,7 +119,7 @@ fn get_from_arrow_map(node: Node, arrow_map: &ArrowMap) -> &[Node] {
 }
 
 
-pub enum DirectedGraphConstructionResult {
+pub enum DirectedGraphFromResult {
     Ok(DirectedGraph),
 
     /// Passed graph didn't have nodes.
@@ -138,7 +138,7 @@ pub enum DirectedGraphConstructionResult {
     ArrowOutsideOfNodesRange(ArrowDTO),
 }
 
-impl DirectedGraphConstructionResult {
+impl DirectedGraphFromResult {
     /// Unwraps `DirectedGraphConstructionResult::Ok` value.
     /// 
     /// # Panics
@@ -146,7 +146,7 @@ impl DirectedGraphConstructionResult {
     #[inline(always)]
     pub fn unwrap(self) -> DirectedGraph {
         match self {
-            DirectedGraphConstructionResult::Ok(graph) => graph,
+            DirectedGraphFromResult::Ok(graph) => graph,
             _ => panic!("DirectedGraphConstructionResult is not Ok."),
         }
     }
@@ -158,15 +158,15 @@ impl DirectedGraph {
     /// # Errors
     /// For specific errors read `FromError` docs.
     pub fn from_dto(value: &DirectedGraphDTO)
-        -> DirectedGraphConstructionResult
+        -> DirectedGraphFromResult
     {
         let number_of_nodes = value.get_number_of_nodes();
         if number_of_nodes <= 0 {
-            return DirectedGraphConstructionResult::EmptyGraph;
+            return DirectedGraphFromResult::EmptyGraph;
         }
 
         if number_of_nodes > Self::get_max_size() {
-            return DirectedGraphConstructionResult::TooBigGraph;
+            return DirectedGraphFromResult::TooBigGraph;
         }
 
         let mut successor_map_duplicates 
@@ -189,7 +189,7 @@ impl DirectedGraph {
 
         for arrow in arrows {
             if multi_arrows.contains(arrow) {
-                return DirectedGraphConstructionResult::MultipleParallelArrows(arrow.clone());
+                return DirectedGraphFromResult::MultipleParallelArrows(arrow.clone());
             }
             multi_arrows.insert(arrow.clone());
             let source = arrow.get_source();
@@ -199,7 +199,7 @@ impl DirectedGraph {
                 || target < 0
                 || target >= number_of_nodes
             {
-                return DirectedGraphConstructionResult::ArrowOutsideOfNodesRange(arrow.clone());
+                return DirectedGraphFromResult::ArrowOutsideOfNodesRange(arrow.clone());
             }
             let source_node = Node::from(source);
             let target_node = Node::from(target);
@@ -266,7 +266,7 @@ impl DirectedGraph {
         let dg = unsafe {
             Self::new_unchecked(number_of_nodes, successors_map, predecessors_map, properties, root_node, leaves)
         };
-        DirectedGraphConstructionResult::Ok(dg)
+        DirectedGraphFromResult::Ok(dg)
     }
 
     /// Creates an unchecked `DirectedGraph`.
@@ -456,7 +456,7 @@ mod tests {
     fn test_empty() {
         let dto = DirectedGraphDTO::new(0, Vec::new());
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, DirectedGraphConstructionResult::EmptyGraph));
+        assert!(matches!(result, DirectedGraphFromResult::EmptyGraph));
     }
 
     #[test]
@@ -464,7 +464,7 @@ mod tests {
         let over_max = DirectedGraph::get_max_size() + 1;
         let dto = DirectedGraphDTO::new(over_max, Vec::new());
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, DirectedGraphConstructionResult::TooBigGraph));
+        assert!(matches!(result, DirectedGraphFromResult::TooBigGraph));
     }
 
     #[test]
@@ -507,21 +507,21 @@ mod tests {
     fn test_multi_arrows() {
         let dto = build_dto(&[(0, 1), (1, 0), (0, 1)]);
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, DirectedGraphConstructionResult::MultipleParallelArrows(_)));
+        assert!(matches!(result, DirectedGraphFromResult::MultipleParallelArrows(_)));
     }
 
     #[test]
     fn test_arrows_out_of_range_1() {
         let dto = build_dto(&[(-1, 5)]);
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, DirectedGraphConstructionResult::ArrowOutsideOfNodesRange(_)));
+        assert!(matches!(result, DirectedGraphFromResult::ArrowOutsideOfNodesRange(_)));
     }
 
     #[test]
     fn test_arrows_out_of_range_2() {
         let dto = DirectedGraphDTO::new(1, Vec::from(&[ArrowDTO::new(0, 5)]));
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, DirectedGraphConstructionResult::ArrowOutsideOfNodesRange(_)));
+        assert!(matches!(result, DirectedGraphFromResult::ArrowOutsideOfNodesRange(_)));
     }
 
     #[test]

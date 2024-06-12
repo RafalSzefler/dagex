@@ -7,7 +7,7 @@ pub struct GenesOverSpecies {
     species_network: PhylogeneticNetwork,
 }
 
-pub enum FromNetworksResult {
+pub enum GeneseOverSpeciesFromResult {
     /// Correct `GenesOverSpecies` object.
     Ok(GenesOverSpecies),
 
@@ -16,7 +16,7 @@ pub enum FromNetworksResult {
     IncorrectTaxa(Vec<PhylogeneticNetwork>, PhylogeneticNetwork),
 }
 
-impl FromNetworksResult {
+impl GeneseOverSpeciesFromResult {
     /// Unwraps `FromNetworksResult::Ok` value.
     /// 
     /// # Panics
@@ -24,9 +24,9 @@ impl FromNetworksResult {
     #[inline(always)]
     pub fn unwrap(self) -> GenesOverSpecies {
         match self {
-            FromNetworksResult::Ok(genes_over_species)
+            GeneseOverSpeciesFromResult::Ok(genes_over_species)
                 => genes_over_species,
-            FromNetworksResult::IncorrectTaxa(_, _)
+            GeneseOverSpeciesFromResult::IncorrectTaxa(_, _)
                 => panic!("FromNetworksResult not Ok."),
         }
     }
@@ -50,14 +50,14 @@ impl GenesOverSpecies {
 
     pub fn from_networks(
         gene_networks: Vec<PhylogeneticNetwork>,
-        species_network: PhylogeneticNetwork) -> FromNetworksResult
+        species_network: PhylogeneticNetwork) -> GeneseOverSpeciesFromResult
     {
         let species_taxa: HashSet<Taxon>
             = species_network.get_taxa().values().cloned().collect();
         
         for gene_network in &gene_networks {
             if !has_valid_taxa(gene_network, &species_taxa) {
-                return FromNetworksResult::IncorrectTaxa(gene_networks, species_network);
+                return GeneseOverSpeciesFromResult::IncorrectTaxa(gene_networks, species_network);
             }
         }
 
@@ -65,12 +65,12 @@ impl GenesOverSpecies {
             Self::new_unchecked(gene_networks, species_network)
         };
 
-        return FromNetworksResult::Ok(result);
+        return GeneseOverSpeciesFromResult::Ok(result);
     }
 
     pub fn from_single_network(
         gene_network: PhylogeneticNetwork,
-        species_network: PhylogeneticNetwork) -> FromNetworksResult
+        species_network: PhylogeneticNetwork) -> GeneseOverSpeciesFromResult
     {
         Self::from_networks(vec![gene_network], species_network)
     }
@@ -135,7 +135,7 @@ mod tests {
             &[(0, 1), (0, 2)],
             &[(1, "Test"), (2, "baz")]);
         let genes_over_species = GenesOverSpecies::from_single_network(genes, species);
-        assert!(matches!(genes_over_species, FromNetworksResult::Ok(_)));
+        assert!(matches!(genes_over_species, GeneseOverSpeciesFromResult::Ok(_)));
     }
 
     
@@ -148,7 +148,7 @@ mod tests {
             &[(0, 1), (0, 2), (2, 3)],
             &[(1, "Test")]);
         let genes_over_species = GenesOverSpecies::from_single_network(genes, species);
-        assert!(matches!(genes_over_species, FromNetworksResult::Ok(_)));
+        assert!(matches!(genes_over_species, GeneseOverSpeciesFromResult::Ok(_)));
     }
 
     #[test]
@@ -160,6 +160,6 @@ mod tests {
             &[(0, 1), (0, 2), (2, 3)],
             &[(1, "Baz")]);
         let genes_over_species = GenesOverSpecies::from_single_network(genes, species);
-        assert!(matches!(genes_over_species, FromNetworksResult::IncorrectTaxa(_, _)));
+        assert!(matches!(genes_over_species, GeneseOverSpeciesFromResult::IncorrectTaxa(_, _)));
     }
 }
