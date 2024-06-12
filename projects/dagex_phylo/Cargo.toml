@@ -1,0 +1,9 @@
+[package]
+name = "dagex_phylo"
+version = "0.1.0"
+edition = "2021"
+authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
+
+[dependencies]
+dagex_core = { path = "../dagex_core" }
+immutable_string = { path = "../utils/immutable_string" }

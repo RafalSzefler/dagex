@@ -170,7 +170,7 @@ impl ImmutableString {
 impl Clone for ImmutableString {
     /// This method doesn't actually clone the string, but it
     /// increments the internal reference counter instead. This operation
-    /// is thread safe and allows sharing of the ImmutableString, without
+    /// is thread safe and allows sharing of the `ImmutableString`, without
     /// the need of copy and allocation.
     fn clone(&self) -> Self {
         self.content.inc_strong();

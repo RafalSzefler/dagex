@@ -19,6 +19,9 @@ pub struct DirectedGraphBasicProperties {
     pub rooted: bool,
 }
 
+/// Represents directed graph. The graph is expected to have a single arrow
+/// between any two nodes, i.e. it is not a multigraph. Arrows in opposite
+/// directions are allowed.
 pub struct DirectedGraph {
     number_of_nodes: i32,
     successors_map: ArrowMap,
@@ -30,30 +33,6 @@ pub struct DirectedGraph {
 
 static _EMPTY: &[Node] = &[];
 
-struct NodeIterator {
-    current: i32,
-    max: i32,
-}
-
-impl NodeIterator {
-    pub(self) fn new(graph: &DirectedGraph) -> Self {
-        Self { current: 0, max: graph.number_of_nodes }
-    }
-}
-
-impl Iterator for NodeIterator {
-    type Item = Node;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.current >= self.max {
-            None
-        } else {
-            let node = Node::new(self.current);
-            self.current += 1;
-            Some(node)
-        }
-    }
-}
 
 impl DirectedGraph {
     #[inline(always)]
@@ -69,7 +48,7 @@ impl DirectedGraph {
 
     #[inline(always)]
     pub fn iter_nodes(&self) -> impl Iterator<Item=Node> {
-        NodeIterator::new(&self)
+        (0..self.number_of_nodes).map(Node::new)
     }
 
     #[inline(always)]
@@ -119,13 +98,26 @@ impl DirectedGraph {
 }
 
 
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss)]
 #[inline(always)]
 fn get_from_arrow_map(node: Node, arrow_map: &ArrowMap) -> &[Node] {
-    &arrow_map[node.get_numeric_id() as usize]
+    let numeric_id = node.get_numeric_id();
+    if numeric_id < 0 || numeric_id > (arrow_map.len() as i32) {
+        _EMPTY
+    }
+    else
+    {
+        &arrow_map[numeric_id as usize]
+    }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub enum FromError {
+
+pub enum DirectedGraphConstructionResult {
+    Ok(DirectedGraph),
+
     /// Passed graph didn't have nodes.
     EmptyGraph,
 
@@ -142,17 +134,35 @@ pub enum FromError {
     ArrowOutsideOfNodesRange(ArrowDTO),
 }
 
+impl DirectedGraphConstructionResult {
+    /// Unwraps `DirectedGraphConstructionResult::Ok` value.
+    /// 
+    /// # Panics
+    /// Only and always when `self` is not `DirectedGraphConstructionResult::Ok`.
+    #[inline(always)]
+    pub fn unwrap(self) -> DirectedGraph {
+        match self {
+            DirectedGraphConstructionResult::Ok(graph) => graph,
+            _ => panic!("DirectedGraphConstructionResult is not ok."),
+        }
+    }
+}
+
 impl DirectedGraph {
+    /// Creates new `DirectedGraph` out of `DirectedGraphDTO`.
+    /// 
+    /// # Errors
+    /// For specific errors read `FromError` docs.
     pub fn from_dto(value: &DirectedGraphDTO)
-        -> Result<DirectedGraph, FromError>
+        -> DirectedGraphConstructionResult
     {
         let number_of_nodes = value.get_number_of_nodes();
         if number_of_nodes <= 0 {
-            return Err(FromError::EmptyGraph);
+            return DirectedGraphConstructionResult::EmptyGraph;
         }
 
         if number_of_nodes > Self::get_max_size() {
-            return Err(FromError::TooBigGraph);
+            return DirectedGraphConstructionResult::TooBigGraph;
         }
 
         let mut successor_map_duplicates 
@@ -169,29 +179,12 @@ impl DirectedGraph {
         let mut multiple_roots = false;
         let mut leaves = Vec::<Node>::with_capacity(8);
 
-        fn insert(
-                key: Node, 
-                value: Node,
-                map: &mut HashMap<Node, HashSet<Node>>)
-        {
-            if let Some(vec) = map.get_mut(&key) {
-                vec.insert(value);
-            }
-            else
-            {
-                let mut targets
-                    = HashSet::<Node>::with_capacity(2);
-                targets.insert(value);
-                map.insert(key, targets);
-            }
-        }
-
         let arrows = value.get_arrows();
         let mut multi_arrows = HashSet::<ArrowDTO>::with_capacity(arrows.len());
 
         for arrow in arrows {
             if multi_arrows.contains(arrow) {
-                return Err(FromError::MultipleParallelArrows(arrow.clone()));
+                return DirectedGraphConstructionResult::MultipleParallelArrows(arrow.clone());
             }
             multi_arrows.insert(arrow.clone());
             let source = arrow.get_source();
@@ -201,50 +194,26 @@ impl DirectedGraph {
                 || target < 0
                 || target >= number_of_nodes
             {
-                return Err(FromError::ArrowOutsideOfNodesRange(arrow.clone()));
+                return DirectedGraphConstructionResult::ArrowOutsideOfNodesRange(arrow.clone());
             }
             let source_node = Node::new(source);
             let target_node = Node::new(target);
-            insert(
+            insert_node_to_arrow_map(
                 source_node,
                 target_node,
                 &mut successor_map_duplicates);
-            insert(
+            insert_node_to_arrow_map(
                 target_node,
                 source_node,
                 &mut predecessor_map_duplicates);
         }
 
-        fn to_arrow_map(number_of_nodes: i32, map: HashMap<Node, HashSet<Node>>)
-            -> ArrowMap
-        {
-            let mut result
-                = Vec::<SmallVec<[Node; 2]>>::with_capacity(number_of_nodes as usize);
-            
-            for idx in 0..number_of_nodes {
-                let node = &Node::new(idx);
-                if let Some(set) = map.get(node) {
-                    let mut vec 
-                        = SmallVec::<[Node; 2]>::with_capacity(set.len());
-                    for target in set {
-                        vec.push(*target);
-                    }
-                    result.push(vec);
-                }
-                else
-                {
-                    result.push(SmallVec::new());
-                }
-            }
-            
-            result
-        }
-
         let successors_map
-            = to_arrow_map(number_of_nodes, successor_map_duplicates);
+            = to_arrow_map(number_of_nodes, &successor_map_duplicates);
         let predecessors_map
-            = to_arrow_map(number_of_nodes, predecessor_map_duplicates);
+            = to_arrow_map(number_of_nodes, &predecessor_map_duplicates);
 
+        #[allow(clippy::cast_sign_loss)]
         for idx in 0..number_of_nodes {
             let node = Node::new(idx);
             if predecessors_map[idx as usize].is_empty() {
@@ -293,13 +262,28 @@ impl DirectedGraph {
                 leaves)
         };
 
-        Ok(dg)
+        DirectedGraphConstructionResult::Ok(dg)
     }
 
-    /// This is creates an unchecked DirectedGraph. In particular
-    /// it is up to caller to ensure that all properties are satisfied
-    /// and consistent. This also exposes internal structure of DirectedGraph.
-    /// Use with caution.
+    /// Creates an unchecked `DirectedGraph`.
+    /// 
+    /// # Safety
+    /// It is up to caller to ensure that all properties and invariants are
+    /// satisfied and consistent. This also exposes internal structure of
+    /// `DirectedGraph`. Use with caution. The following invariants have to
+    /// be satisfied:
+    /// * `number_of_nodes > 0`.
+    /// * `successors_map` and `predecessors_map` are of length equalt
+    ///   to `number_of_nodes`.
+    /// * each value in `successors_map` and `predecessors_map` contains nodes within
+    ///   `(0..number_of_nodes)` range.
+    /// * acyclic, rooted and connected pieces of `properties` have to match the
+    ///   actual graph structure.
+    /// * `root_node` has to point to a single node without a predecessor. It
+    ///   has to be `None` if either there is no root, or multiple are present.
+    /// * `leaves` have to in `(0..number_of_nodes)` range, have to contain
+    ///   nodes without successors, and have to be a complete list of such nodes
+    ///   in th graph.
     pub unsafe fn new_unchecked(
             number_of_nodes: i32,
             successors_map: Vec<SmallVec<[Node; 2]>>,
@@ -320,51 +304,19 @@ impl DirectedGraph {
 }
 
 
+#[allow(clippy::cast_sign_loss)]
 fn verify_connected(
     number_of_nodes: i32,
     predecessor_map: &ArrowMap,
     successors_map: &ArrowMap) -> bool
 {
-    let mut reachable_nodes 
-        = HashSet::from_iter((0..number_of_nodes).map(Node::new));
+    let mut reachable_nodes: HashSet<Node> 
+        = (0..number_of_nodes).map(Node::new).collect();
     let first = Node::new(0);
-
-    fn remove_all_reachable(
-        node: Node,
-        reachable_nodes: &mut HashSet<Node>,
-        seen: &mut HashSet<Node>,
-        predecessor_map: &ArrowMap,
-        successors_map: &ArrowMap)
-    {
-        if seen.contains(&node) {
-            return;
-        }
-        seen.insert(node);
-        reachable_nodes.remove(&node);
-        let idx = node.get_numeric_id() as usize;
-
-        for pred in &predecessor_map[idx] {
-            remove_all_reachable(
-                *pred,
-                reachable_nodes,
-                seen,
-                predecessor_map,
-                successors_map);
-        }
-
-        for succ in &successors_map[idx] {
-            remove_all_reachable(
-                *succ,
-                reachable_nodes,
-                seen,
-                predecessor_map,
-                successors_map);
-        }
-    }
 
     let mut seen
         = HashSet::<Node>::with_capacity(number_of_nodes as usize);
-    remove_all_reachable(
+    verify_connected_remove_all_reachable(
         first,
         &mut reachable_nodes,
         &mut seen,
@@ -373,36 +325,48 @@ fn verify_connected(
     reachable_nodes.is_empty()
 }
 
-fn verify_acyclic(number_of_nodes: i32, successors_map: &ArrowMap) -> bool {
-    fn check_cycle(
-            node: Node,
-            seen: &mut HashSet<Node>,
-            successors_map: &ArrowMap) -> bool
-    {
-        if seen.contains(&node) {
-            return true;
-        }
+#[allow(clippy::cast_sign_loss)]
+fn verify_connected_remove_all_reachable(
+    node: Node,
+    reachable_nodes: &mut HashSet<Node>,
+    seen: &mut HashSet<Node>,
+    predecessor_map: &ArrowMap,
+    successors_map: &ArrowMap)
+{
+    if seen.contains(&node) {
+        return;
+    }
+    seen.insert(node);
+    reachable_nodes.remove(&node);
+    let idx = node.get_numeric_id() as usize;
 
-        let succs = &successors_map[node.get_numeric_id() as usize];
-        if succs.len() > 0 {
-            seen.insert(node);
-            for successor in succs {
-                if check_cycle(*successor, seen, &successors_map) {
-                    return true;
-                }
-            }
-            seen.remove(&node);
-        }
-
-        return false;
+    for pred in &predecessor_map[idx] {
+        verify_connected_remove_all_reachable(
+            *pred,
+            reachable_nodes,
+            seen,
+            predecessor_map,
+            successors_map);
     }
 
-    let mut nodes_stack 
-        = Vec::from_iter((0..number_of_nodes).map(Node::new));
+    for succ in &successors_map[idx] {
+        verify_connected_remove_all_reachable(
+            *succ,
+            reachable_nodes,
+            seen,
+            predecessor_map,
+            successors_map);
+    }
+}
+
+fn verify_acyclic(number_of_nodes: i32, successors_map: &ArrowMap) -> bool {
+    let mut nodes_stack: Vec<Node> 
+        = (0..number_of_nodes).map(Node::new).collect();
+
     loop {
         if let Some(top) = nodes_stack.pop() {
             let mut seen = HashSet::<Node>::new();
-            if check_cycle(top, &mut seen, successors_map) {
+            if verify_acyclic_check_cycle(top, &mut seen, successors_map) {
                 return false;
             }
         }
@@ -413,6 +377,72 @@ fn verify_acyclic(number_of_nodes: i32, successors_map: &ArrowMap) -> bool {
     }
 }
 
+#[allow(clippy::cast_sign_loss)]
+fn verify_acyclic_check_cycle(
+    node: Node,
+    seen: &mut HashSet<Node>,
+    successors_map: &ArrowMap) -> bool
+{
+    if seen.contains(&node) {
+        return true;
+    }
+
+    let succs = &successors_map[node.get_numeric_id() as usize];
+    if !succs.is_empty() {
+        seen.insert(node);
+        for successor in succs {
+            if verify_acyclic_check_cycle(*successor, seen, successors_map) {
+                return true;
+            }
+        }
+        seen.remove(&node);
+    }
+
+    return false;
+}
+
+#[allow(clippy::cast_sign_loss)]
+fn to_arrow_map(number_of_nodes: i32, map: &HashMap<Node, HashSet<Node>>)
+    -> ArrowMap
+{
+    let mut result
+        = Vec::<SmallVec<[Node; 2]>>::with_capacity(number_of_nodes as usize);
+
+    for idx in 0..number_of_nodes {
+        let node = &Node::new(idx);
+        if let Some(set) = map.get(node) {
+            let mut vec 
+                = SmallVec::<[Node; 2]>::with_capacity(set.len());
+            for target in set {
+                vec.push(*target);
+            }
+            result.push(vec);
+        }
+        else
+        {
+            result.push(SmallVec::new());
+        }
+    }
+
+    result
+}
+
+fn insert_node_to_arrow_map(
+    key: Node, 
+    value: Node,
+    map: &mut HashMap<Node, HashSet<Node>>)
+{
+    if let Some(vec) = map.get_mut(&key) {
+        vec.insert(value);
+    }
+    else
+    {
+        let mut targets
+            = HashSet::<Node>::with_capacity(2);
+        targets.insert(value);
+        map.insert(key, targets);
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -422,7 +452,7 @@ mod tests {
     fn test_empty() {
         let dto = DirectedGraphDTO::new(0, Vec::new());
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, Err(FromError::EmptyGraph)));
+        assert!(matches!(result, DirectedGraphConstructionResult::EmptyGraph));
     }
 
     #[test]
@@ -430,7 +460,7 @@ mod tests {
         let over_max = DirectedGraph::get_max_size() + 1;
         let dto = DirectedGraphDTO::new(over_max, Vec::new());
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, Err(FromError::TooBigGraph)));
+        assert!(matches!(result, DirectedGraphConstructionResult::TooBigGraph));
     }
 
     #[test]
@@ -472,21 +502,21 @@ mod tests {
     fn test_multi_arrows() {
         let dto = build_dto(&[(0, 1), (1, 0), (0, 1)]);
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, Err(FromError::MultipleParallelArrows(_))));
+        assert!(matches!(result, DirectedGraphConstructionResult::MultipleParallelArrows(_)));
     }
 
     #[test]
     fn test_arrows_out_of_range_1() {
         let dto = build_dto(&[(-1, 5)]);
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, Err(FromError::ArrowOutsideOfNodesRange(_))));
+        assert!(matches!(result, DirectedGraphConstructionResult::ArrowOutsideOfNodesRange(_)));
     }
 
     #[test]
     fn test_arrows_out_of_range_2() {
         let dto = DirectedGraphDTO::new(1, Vec::from(&[ArrowDTO::new(0, 5)]));
         let result = DirectedGraph::from_dto(&dto);
-        assert!(matches!(result, Err(FromError::ArrowOutsideOfNodesRange(_))));
+        assert!(matches!(result, DirectedGraphConstructionResult::ArrowOutsideOfNodesRange(_)));
     }
 
     #[test]

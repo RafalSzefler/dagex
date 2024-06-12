@@ -1,5 +1,5 @@
 
-#[derive(PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash, Debug)]
 pub struct Node {
     id: i32,
 }

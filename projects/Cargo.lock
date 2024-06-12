@@ -26,6 +26,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "dagex_phylo"
+version = "0.1.0"
+dependencies = [
+ "dagex_core",
+ "immutable_string",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
