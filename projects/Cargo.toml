@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "utils/immutable_string",
-    "dagex_abstractions",
+    "dagex_core",
+    "dagex_phylo",
 ]
 resolver = "2"
 
@@ -9,3 +10,4 @@ resolver = "2"
 getrandom = "0.2"
 rand = "0.8.5"
 ctor = "0.2.8"
+smallvec = "1.13.2"
