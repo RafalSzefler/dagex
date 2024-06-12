@@ -26,6 +26,7 @@ pub struct DirectedGraphBasicProperties {
 /// Represents directed graph. The graph is expected to have a single arrow
 /// between any two nodes, i.e. it is not a multigraph. Arrows in opposite
 /// directions are allowed.
+#[derive(Clone)]
 pub struct DirectedGraph {
     number_of_nodes: i32,
     successors_map: ArrowMap,
@@ -145,9 +146,13 @@ impl DirectedGraphFromResult {
     /// Only and always when `self` is not `DirectedGraphConstructionResult::Ok`.
     #[inline(always)]
     pub fn unwrap(self) -> DirectedGraph {
-        match self {
-            DirectedGraphFromResult::Ok(graph) => graph,
-            _ => panic!("DirectedGraphConstructionResult is not Ok."),
+        if let DirectedGraphFromResult::Ok(graph) = self {
+            graph
+        }
+        else
+        {
+            let name = core::any::type_name::<DirectedGraphFromResult>();
+            panic!("{name} not Ok.");
         }
     }
 }
