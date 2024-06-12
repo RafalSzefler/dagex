@@ -21,6 +21,9 @@ pub struct DirectedGraphBasicProperties {
 
     /// Every node has at most two successors and at most two predecessors.
     pub binary: bool,
+
+    /// Every node has at most one predecessor.
+    pub tree: bool,
 }
 
 /// Represents directed graph. The graph is expected to have a single arrow
@@ -184,6 +187,7 @@ impl DirectedGraph {
                 connected: false,
                 rooted: false,
                 binary: true,
+                tree: true,
             };
         let mut root_node = Option::<Node>::None;
         let mut multiple_roots = false;
@@ -244,6 +248,10 @@ impl DirectedGraph {
 
             if preds_len > 2 || succs_len > 2 {
                 properties.binary = false;
+            }
+
+            if preds_len > 1 {
+                properties.tree = false;
             }
         }
 
