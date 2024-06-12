@@ -145,8 +145,6 @@ impl PhylogeneticNetwork {
 
 #[cfg(test)]
 mod tests {
-    use core::net;
-
     use dagex_core::{ArrowDTO, DirectedGraphDTO};
     use immutable_string::ImmutableString;
 
