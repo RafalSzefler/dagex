@@ -26,6 +26,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "dagex_core_algorithms"
+version = "0.1.0"
+dependencies = [
+ "dagex_core",
+]
+
+[[package]]
 name = "dagex_phylo"
 version = "0.1.0"
 dependencies = [

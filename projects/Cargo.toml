@@ -2,6 +2,7 @@
 members = [
     "utils/immutable_string",
     "dagex_core",
+    "dagex_core_algorithms",
     "dagex_phylo",
 ]
 resolver = "2"

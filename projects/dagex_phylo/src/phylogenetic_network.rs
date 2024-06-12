@@ -10,9 +10,6 @@ pub struct PhylogeneticNetworkProperties {
     /// All leaves have taxon attached.
     pub all_leaves_labeled: bool,
 
-    /// Each non-root node has exactly one parent.
-    pub tree: bool,
-
     /// Each internal node has a child that has exactly one parent.
     pub tree_child: bool,
 }
@@ -113,7 +110,6 @@ impl PhylogeneticNetwork {
 
         let mut properties = PhylogeneticNetworkProperties {
             all_leaves_labeled: true,
-            tree: true,
             tree_child: true,
         };
 
@@ -133,10 +129,6 @@ impl PhylogeneticNetwork {
                 continue;
             }
 
-            if properties.tree && graph.get_predecessors(node).len() > 1 {
-                properties.tree = false;
-            }
-
             if properties.tree_child {
                 if graph.get_successors(node).is_empty() {
                     continue;
@@ -151,7 +143,7 @@ impl PhylogeneticNetwork {
             }
         }
 
-        assert!(!properties.tree || properties.tree_child,
+        assert!(!props.tree || properties.tree_child,
             "If it is tree, then it has to be tree child. Something went seriously wrong.");
 
         unsafe {
@@ -303,7 +295,6 @@ mod tests {
 
         let props = network.get_properties();
         assert!(props.all_leaves_labeled);
-        assert!(props.tree);
         assert!(props.tree_child);
         assert_eq!(network.get_id(), PhylogeneticNetworkId::from(ID));
 
@@ -312,6 +303,7 @@ mod tests {
         assert!(props.acyclic);
         assert!(props.connected);
         assert!(props.rooted);
+        assert!(props.tree);
         let root = graph.get_root().unwrap();
         assert_eq!(root.get_numeric_id(), 0);
         let network_root = network.get_root();
@@ -349,7 +341,7 @@ mod tests {
 
         let props = network.get_properties();
         assert!(!props.all_leaves_labeled);
-        assert!(props.tree);
+        assert!(network.get_graph().get_basic_properties().tree);
         assert!(props.tree_child);
         assert_eq!(network.get_id().get_numeric_id(), 1);
     }
@@ -367,7 +359,7 @@ mod tests {
 
         let props = network.get_properties();
         assert!(!props.all_leaves_labeled);
-        assert!(!props.tree);
+        assert!(!network.get_graph().get_basic_properties().tree);
         assert!(props.tree_child);
         assert_eq!(network.get_id().get_numeric_id(), 1);
     }
