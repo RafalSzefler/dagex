@@ -147,7 +147,7 @@ impl DirectedGraphConstructionResult {
     pub fn unwrap(self) -> DirectedGraph {
         match self {
             DirectedGraphConstructionResult::Ok(graph) => graph,
-            _ => panic!("DirectedGraphConstructionResult is not ok."),
+            _ => panic!("DirectedGraphConstructionResult is not Ok."),
         }
     }
 }
@@ -294,7 +294,7 @@ impl DirectedGraph {
             predecessors_map: Vec<SmallVec<[Node; 2]>>,
             properties: DirectedGraphBasicProperties,
             root_node: Option<Node>,
-            leaves: Vec<Node>) -> DirectedGraph
+            leaves: Vec<Node>) -> Self
     {
         Self {
             number_of_nodes: number_of_nodes,

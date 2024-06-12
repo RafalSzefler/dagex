@@ -9,6 +9,7 @@ use crate::{PhylogeneticNetworkDTO, Taxon};
 pub struct PhylogeneticNetwork {
     graph: DirectedGraph,
     taxa: HashMap<Node, Taxon>,
+    all_leaves_labeled: bool,
 }
 
 pub enum PhyloConstructionResult {
@@ -41,7 +42,7 @@ impl PhyloConstructionResult {
     pub fn unwrap(self) -> PhylogeneticNetwork {
         match self {
             PhyloConstructionResult::Ok(graph) => graph,
-            _ => panic!("PhyloConstructionResult is not ok."),
+            _ => panic!("PhyloConstructionResult is not Ok."),
         }
     }
 }
@@ -56,9 +57,10 @@ impl PhylogeneticNetwork {
     #[inline(always)]
     pub unsafe fn from_unchecked(
         graph: DirectedGraph,
-        taxa: HashMap<Node, Taxon>) -> Self
+        taxa: HashMap<Node, Taxon>,
+        all_leaves_labeled: bool) -> Self
     {
-        Self { graph, taxa }
+        Self { graph, taxa, all_leaves_labeled }
     }
 
     pub fn from_graph_and_taxa(graph: DirectedGraph, taxa: HashMap<Node, Taxon>)
@@ -78,17 +80,21 @@ impl PhylogeneticNetwork {
         }
 
         let mut taxa_nodes: HashSet<Node> = taxa.keys().copied().collect();
+        let mut leaves: HashSet<Node> = graph.get_leaves().iter().copied().collect();
 
         for leaf in graph.get_leaves() {
             taxa_nodes.remove(leaf);
+            leaves.remove(leaf);
         }
 
         if !taxa_nodes.is_empty() {
             return PhyloConstructionResult::TaxaNotLeaves(graph);
         }
 
+        let all_leaves_labeled = leaves.is_empty();
+
         let result = unsafe {
-            Self::from_unchecked(graph, taxa)
+            Self::from_unchecked(graph, taxa, all_leaves_labeled)
         };
 
         return PhyloConstructionResult::Ok(result);
@@ -119,11 +125,28 @@ impl PhylogeneticNetwork {
     pub fn get_taxa(&self) -> &HashMap<Node, Taxon> {
         &self.taxa
     }
+
+    #[inline(always)]
+    pub fn all_leaves_are_labeled(&self) -> bool {
+        self.all_leaves_labeled
+    }
+
+    /// Returns root of the `PhyologeneticNetwork`.
+    /// 
+    /// # Panics
+    /// Only when the network is constructed in an unsafe way, i.e. when
+    /// the underlying graph is not rooted.
+    #[inline(always)]
+    pub fn get_root(&self) -> Node {
+        self.graph.get_root().unwrap()
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
+    use core::net;
+
     use dagex_core::{ArrowDTO, DirectedGraphDTO};
     use immutable_string::ImmutableString;
 
@@ -133,12 +156,12 @@ mod tests {
 
     fn dg_dto_empty() -> DirectedGraphDTO { DirectedGraphDTO::new(0, Vec::new()) }
 
-    fn dg_dto<T: Into<i32> + Clone>(arrows: &[(T, T)]) -> DirectedGraphDTO {
+    fn dg_dto(arrows: &[(i32, i32)]) -> DirectedGraphDTO {
         let mut max = 0;
         let mut target_arrows = Vec::<ArrowDTO>::with_capacity(arrows.len());
         for (source, target) in arrows {
-            let s = source.clone().into();
-            let t = target.clone().into();
+            let s = source.clone();
+            let t = target.clone();
             max = core::cmp::max(s, core::cmp::max(t, max));
             target_arrows.push(ArrowDTO::new(s, t));
         }
@@ -199,6 +222,8 @@ mod tests {
         assert_eq!(taxa.get(&Node::from(1)).unwrap().as_immutable_string(), &imm("a"));
         assert_eq!(taxa.get(&Node::from(2)).unwrap().as_immutable_string(), &imm("xyz"));
 
+        assert!(network.all_leaves_are_labeled());
+
         let graph = network.get_graph();
         let props = graph.get_basic_properties();
         assert!(props.acyclic);
@@ -206,6 +231,8 @@ mod tests {
         assert!(props.rooted);
         let root = graph.get_root().unwrap();
         assert_eq!(root.get_numeric_id(), 0);
+        let network_root = network.get_root();
+        assert_eq!(network_root, root);
 
         assert_eq!(graph.get_number_of_nodes(), 3);
         let node0 = Node::from(0);
