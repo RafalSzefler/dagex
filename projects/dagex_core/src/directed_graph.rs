@@ -6,6 +6,7 @@ use crate::{directed_graph_dto::ArrowDTO, DirectedGraphDTO, Node};
 
 type ArrowMap = Vec<SmallVec<[Node; 2]>>;
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct DirectedGraphBasicProperties {
     /// The corresponding graph does not contain oriented cycles.
@@ -17,6 +18,9 @@ pub struct DirectedGraphBasicProperties {
     /// The corresponding graph has a single node with in-degree 0, i.e.
     /// without arrows pointing to it.
     pub rooted: bool,
+
+    /// Every node has at most two successors and at most two predecessors.
+    pub binary: bool,
 }
 
 /// Represents directed graph. The graph is expected to have a single arrow
@@ -48,7 +52,7 @@ impl DirectedGraph {
 
     #[inline(always)]
     pub fn iter_nodes(&self) -> impl Iterator<Item=Node> {
-        (0..self.number_of_nodes).map(Node::new)
+        (0..self.number_of_nodes).map(Node::from)
     }
 
     #[inline(always)]
@@ -85,7 +89,7 @@ impl DirectedGraph {
             8);
         let mut arrows = Vec::<ArrowDTO>::with_capacity(max_arrows);
         for idx in 0..self.number_of_nodes {
-            let node = Node::new(idx);
+            let node = Node::from(idx);
             for successor in self.get_successors(node) {
                 let arrow = ArrowDTO::new(
                     node.get_numeric_id(), 
@@ -173,7 +177,8 @@ impl DirectedGraph {
             = DirectedGraphBasicProperties {
                 acyclic: false,
                 connected: false,
-                rooted: false
+                rooted: false,
+                binary: true,
             };
         let mut root_node = Option::<Node>::None;
         let mut multiple_roots = false;
@@ -196,8 +201,8 @@ impl DirectedGraph {
             {
                 return DirectedGraphConstructionResult::ArrowOutsideOfNodesRange(arrow.clone());
             }
-            let source_node = Node::new(source);
-            let target_node = Node::new(target);
+            let source_node = Node::from(source);
+            let target_node = Node::from(target);
             insert_node_to_arrow_map(
                 source_node,
                 target_node,
@@ -215,8 +220,10 @@ impl DirectedGraph {
 
         #[allow(clippy::cast_sign_loss)]
         for idx in 0..number_of_nodes {
-            let node = Node::new(idx);
-            if predecessors_map[idx as usize].is_empty() {
+            let node = Node::from(idx);
+            let preds_len = predecessors_map[idx as usize].len();
+            let succs_len = successors_map[idx as usize].len();
+            if preds_len == 0 {
                 if root_node.is_none() {
                     root_node = Some(node);
                 }
@@ -226,8 +233,12 @@ impl DirectedGraph {
                 }
             }
 
-            if successors_map[idx as usize].is_empty() {
+            if succs_len == 0 {
                 leaves.push(node);
+            }
+
+            if preds_len > 2 || succs_len > 2 {
+                properties.binary = false;
             }
         }
 
@@ -253,15 +264,8 @@ impl DirectedGraph {
         }
 
         let dg = unsafe {
-            Self::new_unchecked(
-                number_of_nodes,
-                successors_map,
-                predecessors_map,
-                properties,
-                root_node,
-                leaves)
+            Self::new_unchecked(number_of_nodes, successors_map, predecessors_map, properties, root_node, leaves)
         };
-
         DirectedGraphConstructionResult::Ok(dg)
     }
 
@@ -311,8 +315,8 @@ fn verify_connected(
     successors_map: &ArrowMap) -> bool
 {
     let mut reachable_nodes: HashSet<Node> 
-        = (0..number_of_nodes).map(Node::new).collect();
-    let first = Node::new(0);
+        = (0..number_of_nodes).map(Node::from).collect();
+    let first = Node::from(0);
 
     let mut seen
         = HashSet::<Node>::with_capacity(number_of_nodes as usize);
@@ -361,7 +365,7 @@ fn verify_connected_remove_all_reachable(
 
 fn verify_acyclic(number_of_nodes: i32, successors_map: &ArrowMap) -> bool {
     let mut nodes_stack: Vec<Node> 
-        = (0..number_of_nodes).map(Node::new).collect();
+        = (0..number_of_nodes).map(Node::from).collect();
 
     loop {
         if let Some(top) = nodes_stack.pop() {
@@ -409,7 +413,7 @@ fn to_arrow_map(number_of_nodes: i32, map: &HashMap<Node, HashSet<Node>>)
         = Vec::<SmallVec<[Node; 2]>>::with_capacity(number_of_nodes as usize);
 
     for idx in 0..number_of_nodes {
-        let node = &Node::new(idx);
+        let node = &Node::from(idx);
         if let Some(set) = map.get(node) {
             let mut vec 
                 = SmallVec::<[Node; 2]>::with_capacity(set.len());
@@ -474,6 +478,7 @@ mod tests {
             assert!(props.acyclic);
             assert!(!props.connected);
             assert!(!props.rooted);
+            assert!(props.binary);
 
             let mut node_count = 0;
             for node in graph.iter_nodes() {
@@ -486,12 +491,12 @@ mod tests {
         }
     }
 
-    fn build_dto<T: Into<i32> + Clone>(arrows: &[(T, T)]) -> DirectedGraphDTO {
+    fn build_dto(arrows: &[(i32, i32)]) -> DirectedGraphDTO {
         let mut max = 0;
         let mut target_arrows = Vec::<ArrowDTO>::with_capacity(arrows.len());
         for (source, target) in arrows {
-            let s = source.clone().into();
-            let t = target.clone().into();
+            let s = source.clone();
+            let t = target.clone();
             max = core::cmp::max(s, core::cmp::max(t, max));
             target_arrows.push(ArrowDTO::new(s, t));
         }
@@ -529,6 +534,7 @@ mod tests {
         assert!(!props.acyclic);
         assert!(props.connected);
         assert!(!props.rooted);
+        assert!(props.binary);
         for node in graph.iter_nodes() {
             assert_eq!(graph.get_successors(node).len(), 1);
             assert_eq!(graph.get_predecessors(node).len(), 1);
@@ -545,6 +551,7 @@ mod tests {
         assert!(!props.acyclic);
         assert!(props.connected);
         assert!(!props.rooted);
+        assert!(props.binary);
         for node in graph.iter_nodes() {
             assert_eq!(graph.get_successors(node).len(), 1);
             assert_eq!(graph.get_predecessors(node).len(), 1);
@@ -561,6 +568,7 @@ mod tests {
         assert!(!props.acyclic);
         assert!(props.connected);
         assert!(props.rooted);
+        assert!(props.binary);
     }
 
     
@@ -574,6 +582,7 @@ mod tests {
         assert!(!props.acyclic);
         assert!(!props.connected);
         assert!(!props.rooted);
+        assert!(props.binary);
     }
 
     #[test]
@@ -586,12 +595,34 @@ mod tests {
         assert!(props.acyclic);
         assert!(props.connected);
         assert!(props.rooted);
+        assert!(props.binary);
         assert!(graph.get_root().is_some_and(|val| val.get_numeric_id() == 0));
         let mut leaves = Vec::from_iter(graph.get_leaves().into_iter().map(|n| *n));
         leaves.sort_by_key(|n| n.get_numeric_id());
         assert_eq!(leaves.len(), 2);
         assert_eq!(leaves[0].get_numeric_id(), 3);
         assert_eq!(leaves[1].get_numeric_id(), 4);
+    }
+
+    
+    #[test]
+    fn test_non_binary() {
+        let dto = build_dto(&[(0, 1), (1, 2), (1, 3), (2, 4), (1, 5)]);
+        let result = DirectedGraph::from_dto(&dto);
+        let graph = result.unwrap();
+        assert_eq!(graph.get_number_of_nodes(), 6);
+        let props = graph.get_basic_properties();
+        assert!(props.acyclic);
+        assert!(props.connected);
+        assert!(props.rooted);
+        assert!(!props.binary);
+        assert!(graph.get_root().is_some_and(|val| val.get_numeric_id() == 0));
+        let mut leaves = Vec::from_iter(graph.get_leaves().into_iter().map(|n| *n));
+        leaves.sort_by_key(|n| n.get_numeric_id());
+        assert_eq!(leaves.len(), 3);
+        assert_eq!(leaves[0].get_numeric_id(), 3);
+        assert_eq!(leaves[1].get_numeric_id(), 4);
+        assert_eq!(leaves[2].get_numeric_id(), 5);
     }
 
     #[test]
@@ -604,6 +635,7 @@ mod tests {
         assert!(props.acyclic);
         assert!(props.connected);
         assert!(props.rooted);
+        assert!(props.binary);
         assert!(graph.get_root().is_some_and(|val| val.get_numeric_id() == 0));
         let mut leaves = Vec::from_iter(graph.get_leaves().into_iter().map(|n| *n));
         leaves.sort_by_key(|n| n.get_numeric_id());

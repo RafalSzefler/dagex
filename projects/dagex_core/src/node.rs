@@ -6,12 +6,14 @@ pub struct Node {
 
 impl Node {
     #[inline(always)]
-    pub fn new(id: i32) -> Self {
-        Self { id: id }
-    }
-
-    #[inline(always)]
     pub fn get_numeric_id(&self) -> i32 {
         self.id
+    }
+}
+
+impl From<i32> for Node {
+    #[inline(always)]
+    fn from(value: i32) -> Self {
+        Self { id: value }
     }
 }

@@ -21,6 +21,9 @@ pub enum PhyloConstructionResult {
     /// Passed graph is not rooted. Returns passed value.
     NotRooted(DirectedGraph),
 
+    /// Passed graph is not binary. Returns passed value.
+    NotBinary(DirectedGraph),
+
     /// Taxa map contains nodes that are not leaves. Returns passed value.
     TaxaNotLeaves(DirectedGraph),
 
@@ -48,8 +51,8 @@ impl PhylogeneticNetwork {
     /// 
     /// # Safety
     /// This method is unsafe since it doesn't verify invariants:
-    /// * `graph` has to be acyclic and rooted
-    /// * `taxa` has to map leaves only
+    /// * `graph` has to be acyclic, rooted and binary.
+    /// * `taxa` has to map leaves only.
     #[inline(always)]
     pub unsafe fn from_unchecked(
         graph: DirectedGraph,
@@ -68,6 +71,10 @@ impl PhylogeneticNetwork {
 
         if !props.rooted {
             return PhyloConstructionResult::NotRooted(graph);
+        }
+
+        if !props.binary {
+            return PhyloConstructionResult::NotBinary(graph);
         }
 
         let mut taxa_nodes: HashSet<Node> = taxa.keys().copied().collect();
@@ -93,7 +100,7 @@ impl PhylogeneticNetwork {
                 let taxa: HashMap<Node, Taxon>
                     = dto.get_taxa()
                         .iter()
-                        .map(|kvp| (Node::new(*kvp.0), Taxon::from(kvp.1.clone())))
+                        .map(|kvp| (Node::from(*kvp.0), Taxon::from(kvp.1.clone())))
                         .collect();
                 Self::from_graph_and_taxa(graph, taxa)
             },
@@ -189,8 +196,8 @@ mod tests {
         let network = result.unwrap();
         let taxa = network.get_taxa();
         assert_eq!(taxa.len(), 2);
-        assert_eq!(taxa.get(&Node::new(1)).unwrap().as_immutable_string(), &imm("a"));
-        assert_eq!(taxa.get(&Node::new(2)).unwrap().as_immutable_string(), &imm("xyz"));
+        assert_eq!(taxa.get(&Node::from(1)).unwrap().as_immutable_string(), &imm("a"));
+        assert_eq!(taxa.get(&Node::from(2)).unwrap().as_immutable_string(), &imm("xyz"));
 
         let graph = network.get_graph();
         let props = graph.get_basic_properties();
@@ -201,9 +208,9 @@ mod tests {
         assert_eq!(root.get_numeric_id(), 0);
 
         assert_eq!(graph.get_number_of_nodes(), 3);
-        let node0 = Node::new(0);
-        let node1 = Node::new(1);
-        let node2 = Node::new(2);
+        let node0 = Node::from(0);
+        let node1 = Node::from(1);
+        let node2 = Node::from(2);
 
         assert_eq!(root, node0);
 
