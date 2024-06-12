@@ -11,6 +11,7 @@ resolver = "2"
 version = "0.0.1"
 edition = "2021"
 authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
+rust-version = "1.78"
 
 [workspace.dependencies]
 getrandom = "0.2"
