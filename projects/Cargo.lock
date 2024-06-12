@@ -19,25 +19,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "dagex_core"
+name = "dagex"
 version = "0.0.1"
 dependencies = [
+ "immutable_string",
  "smallvec",
 ]
 
 [[package]]
-name = "dagex_core_algorithms"
+name = "dagex_algorithms"
 version = "0.0.1"
 dependencies = [
- "dagex_core",
-]
-
-[[package]]
-name = "dagex_phylo"
-version = "0.0.1"
-dependencies = [
- "dagex_core",
- "immutable_string",
+ "dagex",
 ]
 
 [[package]]

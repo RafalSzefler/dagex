@@ -1,10 +1,9 @@
 [package]
-name = "dagex_phylo"
+name = "dagex_algorithms"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-dagex_core = { path = "../dagex_core" }
-immutable_string = { path = "../utils/immutable_string" }
+dagex = { path = "../dagex" }

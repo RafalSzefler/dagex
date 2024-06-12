@@ -1,9 +1,10 @@
 [package]
-name = "dagex_core"
+name = "dagex"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+immutable_string = { path = "../utils/immutable_string" }
 smallvec = { workspace = true }

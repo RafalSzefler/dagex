@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
-use dagex_core::DirectedGraphDTO;
 use immutable_string::ImmutableString;
+
+use crate::core::DirectedGraphDTO;
 
 pub struct PhylogeneticNetworkDTO {
     id: i32,

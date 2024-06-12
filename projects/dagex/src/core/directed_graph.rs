@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use smallvec::SmallVec;
 
-use crate::{directed_graph_dto::ArrowDTO, DirectedGraphDTO, Node};
+use super::{ArrowDTO, DirectedGraphDTO, Node};
 
 type ArrowMap = Vec<SmallVec<[Node; 2]>>;
 

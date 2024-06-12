@@ -1,8 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use dagex_core::{DirectedGraph, DirectedGraphFromResult, Node};
+use crate::core::{DirectedGraph, DirectedGraphFromResult, Node};
 
-use crate::{PhylogeneticNetworkDTO, PhylogeneticNetworkId, Taxon};
+use super::{PhylogeneticNetworkDTO, PhylogeneticNetworkId, Taxon};
+
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -212,8 +213,9 @@ impl PhylogeneticNetwork {
 
 #[cfg(test)]
 mod tests {
-    use dagex_core::{ArrowDTO, DirectedGraphDTO};
     use immutable_string::ImmutableString;
+
+    use crate::core::{ArrowDTO, DirectedGraphDTO};
 
     use super::*;
 

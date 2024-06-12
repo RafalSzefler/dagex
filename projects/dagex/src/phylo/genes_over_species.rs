@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::{PhylogeneticNetwork, PhylogeneticNetworkId, Taxon};
+use super::{PhylogeneticNetwork, PhylogeneticNetworkId, Taxon};
 
 #[derive(Clone)]
 pub struct GenesOverSpecies {
@@ -147,10 +147,9 @@ fn has_valid_taxa(
 mod tests {
     use std::collections::HashMap;
 
-    use dagex_core::{ArrowDTO, DirectedGraphDTO};
     use immutable_string::ImmutableString;
 
-    use crate::PhylogeneticNetworkDTO;
+    use crate::{core::{ArrowDTO, DirectedGraphDTO}, phylo::PhylogeneticNetworkDTO};
 
     use super::*;
     

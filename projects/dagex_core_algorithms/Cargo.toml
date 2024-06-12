@@ -1,9 +1,0 @@
-[package]
-name = "dagex_core_algorithms"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
-rust-version.workspace = true
-
-[dependencies]
-dagex_core = { path = "../dagex_core" }
