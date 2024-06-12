@@ -2,14 +2,29 @@ use std::collections::{HashMap, HashSet};
 
 use dagex_core::{DirectedGraph, DirectedGraphFromResult, Node};
 
-use crate::{PhylogeneticNetworkDTO, Taxon};
+use crate::{PhylogeneticNetworkDTO, PhylogeneticNetworkId, Taxon};
+
+#[allow(clippy::struct_excessive_bools)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub struct PhylogeneticNetworkProperties {
+    /// All leaves have taxon attached.
+    pub all_leaves_labeled: bool,
+
+    /// Each non-root node has exactly one parent.
+    pub tree: bool,
+
+    /// Each internal node has a child that has exactly one parent.
+    pub tree_child: bool,
+}
 
 /// Represents phylogenetic network, which is a directed graph
 /// with additional labels (taxons) on leaves.
+#[derive(Clone)]
 pub struct PhylogeneticNetwork {
+    id: PhylogeneticNetworkId,
     graph: DirectedGraph,
     taxa: HashMap<Node, Taxon>,
-    all_leaves_labeled: bool,
+    properties: PhylogeneticNetworkProperties,
 }
 
 pub enum PhylogeneticNetworkFromResult {
@@ -40,9 +55,13 @@ impl PhylogeneticNetworkFromResult {
     /// Only and always when `self` is not `PhyloConstructionResult::Ok`.
     #[inline(always)]
     pub fn unwrap(self) -> PhylogeneticNetwork {
-        match self {
-            PhylogeneticNetworkFromResult::Ok(graph) => graph,
-            _ => panic!("PhyloConstructionResult is not Ok."),
+        if let PhylogeneticNetworkFromResult::Ok(network) = self {
+            network
+        }
+        else
+        {
+            let name = core::any::type_name::<PhylogeneticNetworkFromResult>();
+            panic!("{name} not Ok.");
         }
     }
 }
@@ -54,16 +73,27 @@ impl PhylogeneticNetwork {
     /// This method is unsafe since it doesn't verify invariants:
     /// * `graph` has to be acyclic, rooted and binary.
     /// * `taxa` has to map leaves only.
+    /// * `properties` has to be consistent with the graph.
     #[inline(always)]
     pub unsafe fn from_unchecked(
+        id: PhylogeneticNetworkId,
         graph: DirectedGraph,
         taxa: HashMap<Node, Taxon>,
-        all_leaves_labeled: bool) -> Self
+        properties: PhylogeneticNetworkProperties) -> Self
     {
-        Self { graph, taxa, all_leaves_labeled }
+        Self { id, graph, taxa, properties }
     }
 
-    pub fn from_graph_and_taxa(graph: DirectedGraph, taxa: HashMap<Node, Taxon>)
+    /// Safely constructs `PhylogeneticNetwork` directly and calculates/verifies
+    /// all associated invariants and properties.
+    /// 
+    /// # Panics
+    /// Should never panic, unless the associated graph is tree but not
+    /// tree-child. This can only happen due to bug.
+    pub fn from_id_graph_and_taxa(
+        id: PhylogeneticNetworkId,
+        graph: DirectedGraph,
+        taxa: HashMap<Node, Taxon>)
         -> PhylogeneticNetworkFromResult
     {
         let props = graph.get_basic_properties();
@@ -80,40 +110,85 @@ impl PhylogeneticNetwork {
         }
 
         let mut taxa_nodes: HashSet<Node> = taxa.keys().copied().collect();
-        let mut leaves: HashSet<Node> = graph.get_leaves().iter().copied().collect();
+
+        let mut properties = PhylogeneticNetworkProperties {
+            all_leaves_labeled: true,
+            tree: true,
+            tree_child: true,
+        };
 
         for leaf in graph.get_leaves() {
-            taxa_nodes.remove(leaf);
-            leaves.remove(leaf);
+            if !taxa_nodes.remove(leaf) {
+                properties.all_leaves_labeled = false;
+            }
         }
 
         if !taxa_nodes.is_empty() {
             return PhylogeneticNetworkFromResult::TaxaNotLeaves(graph);
         }
 
-        let all_leaves_labeled = leaves.is_empty();
+        let root = graph.get_root().unwrap();
+        for node in graph.iter_nodes() {
+            if node == root {
+                continue;
+            }
 
-        let result = unsafe {
-            Self::from_unchecked(graph, taxa, all_leaves_labeled)
-        };
+            if properties.tree && graph.get_predecessors(node).len() > 1 {
+                properties.tree = false;
+            }
 
-        return PhylogeneticNetworkFromResult::Ok(result);
+            if properties.tree_child {
+                if graph.get_successors(node).is_empty() {
+                    continue;
+                }
+
+                let successor_is_tree = graph.get_successors(node)
+                    .iter()
+                    .any(|succ| graph.get_predecessors(*succ).len() == 1);
+                if !successor_is_tree {
+                    properties.tree_child = false;
+                }
+            }
+        }
+
+        assert!(!properties.tree || properties.tree_child,
+            "If it is tree, then it has to be tree child. Something went seriously wrong.");
+
+        unsafe {
+            PhylogeneticNetworkFromResult::Ok(
+                Self::from_unchecked(id, graph, taxa, properties))
+        }
+    }
+
+    pub fn from_graph_and_taxa(
+        graph: DirectedGraph,
+        taxa: HashMap<Node, Taxon>)
+        -> PhylogeneticNetworkFromResult
+    {
+        let id = PhylogeneticNetworkId::generate_next();
+        Self::from_id_graph_and_taxa(id, graph, taxa)
     }
 
     pub fn from_dto(dto: &PhylogeneticNetworkDTO) -> PhylogeneticNetworkFromResult {
         match DirectedGraph::from_dto(dto.get_graph()) {
             DirectedGraphFromResult::Ok(graph) => {
+                let id = PhylogeneticNetworkId::from(dto.get_id());
                 let taxa: HashMap<Node, Taxon>
                     = dto.get_taxa()
                         .iter()
                         .map(|kvp| (Node::from(*kvp.0), Taxon::from(kvp.1.clone())))
                         .collect();
-                Self::from_graph_and_taxa(graph, taxa)
+                Self::from_id_graph_and_taxa(id, graph, taxa)
             },
             err => {
                 PhylogeneticNetworkFromResult::GraphError(err)
             }
         }
+    }
+
+    #[inline(always)]
+    pub fn get_id(&self) -> PhylogeneticNetworkId {
+        self.id
     }
 
     #[inline(always)]
@@ -127,8 +202,8 @@ impl PhylogeneticNetwork {
     }
 
     #[inline(always)]
-    pub fn all_leaves_are_labeled(&self) -> bool {
-        self.all_leaves_labeled
+    pub fn get_properties(&self) -> &PhylogeneticNetworkProperties {
+        &self.properties
     }
 
     /// Returns root of the `PhyologeneticNetwork`.
@@ -169,6 +244,7 @@ mod tests {
     #[test]
     fn test_empty() {
         let dto = PhylogeneticNetworkDTO::new(
+            1,
             dg_dto_empty(),
             HashMap::new());
         
@@ -179,6 +255,7 @@ mod tests {
     #[test]
     fn test_empty_with_taxa() {
         let dto = PhylogeneticNetworkDTO::new(
+            1,
             dg_dto_empty(),
             HashMap::from_iter([(1, imm("test"))]));
         
@@ -189,6 +266,7 @@ mod tests {
     #[test]
     fn test_taxa_not_leaves_1() {
         let dto = PhylogeneticNetworkDTO::new(
+            1,
             DirectedGraphDTO::new(1, Vec::new()),
             HashMap::from_iter([(1, imm("test"))]));
         
@@ -199,6 +277,7 @@ mod tests {
     #[test]
     fn test_taxa_not_leaves_2() {
         let dto = PhylogeneticNetworkDTO::new(
+            1,
             dg_dto(&[(0, 1)]),
             HashMap::from_iter([(0, imm("test2"))]));
         
@@ -208,7 +287,9 @@ mod tests {
 
     #[test]
     fn test_ok() {
+        const ID: i32 = 17;
         let dto = PhylogeneticNetworkDTO::new(
+            ID,
             dg_dto(&[(0, 1), (0, 2)]),
             HashMap::from_iter([(1, imm("a")), (2, imm("xyz"))]));
         
@@ -220,7 +301,11 @@ mod tests {
         assert_eq!(taxa.get(&Node::from(1)).unwrap().as_immutable_string(), &imm("a"));
         assert_eq!(taxa.get(&Node::from(2)).unwrap().as_immutable_string(), &imm("xyz"));
 
-        assert!(network.all_leaves_are_labeled());
+        let props = network.get_properties();
+        assert!(props.all_leaves_labeled);
+        assert!(props.tree);
+        assert!(props.tree_child);
+        assert_eq!(network.get_id(), PhylogeneticNetworkId::from(ID));
 
         let graph = network.get_graph();
         let props = graph.get_basic_properties();
@@ -249,6 +334,42 @@ mod tests {
         assert_eq!(graph.get_predecessors(node1), &[node0]);
         assert_eq!(graph.get_successors(node2).len(), 0);
         assert_eq!(graph.get_predecessors(node2), &[node0]);
+    }
+
+    #[test]
+    fn test_tree() {
+        let dto = PhylogeneticNetworkDTO::new(
+            1,
+            dg_dto(&[(0, 1), (0, 2)]),
+            HashMap::new());
+        
+        let result = PhylogeneticNetwork::from_dto(&dto);
+        assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)));
+        let network = result.unwrap();
+
+        let props = network.get_properties();
+        assert!(!props.all_leaves_labeled);
+        assert!(props.tree);
+        assert!(props.tree_child);
+        assert_eq!(network.get_id().get_numeric_id(), 1);
+    }
+
+    #[test]
+    fn test_tree_child() {
+        let dto = PhylogeneticNetworkDTO::new(
+            1,
+            dg_dto(&[(0, 1), (0, 2), (1, 3), (1, 4), (2, 4), (2, 5)]),
+            HashMap::new());
+        
+        let result = PhylogeneticNetwork::from_dto(&dto);
+        assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)));
+        let network = result.unwrap();
+
+        let props = network.get_properties();
+        assert!(!props.all_leaves_labeled);
+        assert!(!props.tree);
+        assert!(props.tree_child);
+        assert_eq!(network.get_id().get_numeric_id(), 1);
     }
 
 }
