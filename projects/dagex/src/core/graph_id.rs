@@ -1,21 +1,20 @@
 use crate::GlobalId;
 
 #[derive(PartialEq, Eq, Clone, Copy, Hash, Debug)]
-pub struct PhylogeneticNetworkId {
+pub struct GraphId {
     global_id: GlobalId
 }
 
-impl PhylogeneticNetworkId {    
+impl GraphId {    
     #[inline(always)]
     pub fn generate_next() -> Self {
         Self { global_id: GlobalId::generate_next() }
     }
 }
 
-
-impl From<PhylogeneticNetworkId> for i32 {
+impl From<GraphId> for i32 {
     #[inline(always)]
-    fn from(value: PhylogeneticNetworkId) -> Self {
+    fn from(value: GraphId) -> Self {
         i32::from(value.global_id)
     }
 }

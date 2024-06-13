@@ -2,7 +2,6 @@ use core::slice;
 use core::hash::{Hash, Hasher};
 
 use crate::{
-    fnv1_hash::calculate_fnv1a_hash,
     string_buffer::StringBuffer,
     types::{HashType, LengthType}
 };
@@ -59,10 +58,12 @@ impl From<&str> for Buffer {
         clippy::cast_sign_loss,
         clippy::cast_possible_wrap)]
     fn from(value: &str) -> Self {
+        let mut hasher = fnv1a_hasher::FNV1a32Hasher::new();
+        value.as_bytes().hash(&mut hasher);
         Self {
             raw_ptr: value.as_ptr(),
             length: value.len() as LengthType,
-            hash: calculate_fnv1a_hash(value.as_bytes()),
+            hash: hasher.finish() as HashType,
         }
     }
 }

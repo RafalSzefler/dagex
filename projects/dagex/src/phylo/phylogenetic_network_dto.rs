@@ -5,20 +5,14 @@ use immutable_string::ImmutableString;
 use crate::core::DirectedGraphDTO;
 
 pub struct PhylogeneticNetworkDTO {
-    id: i32,
     graph: DirectedGraphDTO,
     taxa: HashMap<i32, ImmutableString>,
 }
 
 impl PhylogeneticNetworkDTO {
     #[inline(always)]
-    pub fn new(id: i32, graph: DirectedGraphDTO, taxa: HashMap<i32, ImmutableString>) -> Self {
-        Self { id, graph, taxa }
-    }
-
-    #[inline(always)]
-    pub fn get_id(&self) -> i32 {
-        self.id
+    pub fn new(graph: DirectedGraphDTO, taxa: HashMap<i32, ImmutableString>) -> Self {
+        Self { graph, taxa }
     }
 
     #[inline(always)]

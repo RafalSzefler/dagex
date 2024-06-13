@@ -1,5 +1,5 @@
 [package]
-name = "immutable_string"
+name = "fnv1a_hasher"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,11 +7,9 @@ rust-version.workspace = true
 
 [dependencies]
 ctor = { workspace = true, optional = true }
-fnv1a_hasher = { path = "../fnv1a_hasher" }
-
-[dev-dependencies]
-rand.workspace = true
+getrandom = { workspace = true, optional = true }
 
 [features]
-default = ["use-ctor"]
+default = ["use-ctor", "use-getrandom"]
 use-ctor = ["dep:ctor"]
+use-getrandom = ["dep:getrandom"]

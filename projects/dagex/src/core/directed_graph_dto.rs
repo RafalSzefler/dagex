@@ -40,10 +40,12 @@ impl DirectedGraphDTO {
         Self { number_of_nodes, arrows }
     }
 
+    #[inline(always)]
     pub fn get_number_of_nodes(&self) -> i32 {
         self.number_of_nodes
     }
 
+    #[inline(always)]
     pub fn get_arrows(&self) -> &Vec<ArrowDTO> {
         &self.arrows
     }

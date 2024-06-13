@@ -8,7 +8,6 @@ use std::alloc::{alloc, dealloc};
 
 use crate::types::{MAX_LENGTH, MAX_PREFIX};
 use crate::{
-    fnv1_hash::calculate_fnv1a_hash,
     layout_helpers::{extend_layout_for_type, max},
     types::{
         AtomicType,
@@ -113,7 +112,10 @@ impl StringBuffer {
             return Err(ConstructionError::LengthTooBig);
         }
         let len = array_len as LengthType;
-        let hash = calculate_fnv1a_hash(text.as_bytes());
+
+        let mut hasher = fnv1a_hasher::FNV1a32Hasher::new();
+        text.as_bytes().hash(&mut hasher);
+        let hash = hasher.finish() as HashType;
 
         let total_length = _calculate_real_size(len) as usize;
         let layout = unsafe {

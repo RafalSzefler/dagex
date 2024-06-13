@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "utils/fnv1a_hasher",
     "utils/immutable_string",
     "dagex",
     "dagex_algorithms",
@@ -17,3 +18,4 @@ getrandom = "0.2"
 rand = "0.8.5"
 ctor = "0.2.8"
 smallvec = "1.13.2"
+fasthash = "0.4"

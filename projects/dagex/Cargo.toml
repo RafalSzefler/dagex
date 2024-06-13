@@ -6,5 +6,6 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+fnv1a_hasher = { path = "../utils/fnv1a_hasher" }
 immutable_string = { path = "../utils/immutable_string" }
 smallvec = { workspace = true }

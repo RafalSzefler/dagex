@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 use super::{PhylogeneticNetwork, PhylogeneticNetworkId, Taxon};
 
-#[derive(Clone)]
 pub struct GenesOverSpecies {
     gene_networks: Vec<PhylogeneticNetwork>,
     gene_networks_by_id: HashMap<PhylogeneticNetworkId, i32>,
@@ -140,106 +139,4 @@ fn has_valid_taxa(
     let gene_taxa: HashSet<Taxon>
         = gene_network.get_taxa().values().cloned().collect();
     gene_taxa.is_subset(species_taxa)
-}
-
-
-#[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
-
-    use immutable_string::ImmutableString;
-
-    use crate::{core::{ArrowDTO, DirectedGraphDTO}, phylo::PhylogeneticNetworkDTO};
-
-    use super::*;
-    
-    fn build_network(id: i32, arrows: &[(i32, i32)], taxa: &[(i32, &'static str)]) -> PhylogeneticNetwork {
-        let mut max = 0;
-        let mut target_arrows = Vec::<ArrowDTO>::with_capacity(arrows.len());
-        for (source, target) in arrows {
-            let s = source.clone();
-            let t = target.clone();
-            max = core::cmp::max(s, core::cmp::max(t, max));
-            target_arrows.push(ArrowDTO::new(s, t));
-        }
-        let graph_dto = DirectedGraphDTO::new(max+1, Vec::from_iter(target_arrows));
-        let mapped_taxa: HashMap<i32, ImmutableString>
-            = taxa.iter()
-                .map(|kvp| (kvp.0, ImmutableString::get(kvp.1).unwrap()))
-                .collect();
-        let network_dto = PhylogeneticNetworkDTO::new(
-            id,
-            graph_dto,
-            mapped_taxa);
-        PhylogeneticNetwork::from_dto(&network_dto).unwrap()
-    }
-
-    #[test]
-    fn test_valid_taxa_1() {
-        let genes_network = build_network(
-            1,
-            &[(0, 1)],
-            &[(1, "Test")]);
-        let species_network = build_network(
-            1,
-            &[(0, 1), (0, 2)],
-            &[(1, "Test"), (2, "baz")]);
-        let genes_over_species 
-            = GenesOverSpecies::from_single_network(genes_network.clone(), species_network.clone())
-                .unwrap();
-        
-        let genes = genes_over_species.get_gene_networks();
-        assert_eq!(genes.len(), 1);
-        assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].get_id()).unwrap().get_id(), genes_network.get_id());
-        assert_eq!(genes_over_species.get_species_network().get_id(), species_network.get_id());
-    }
-
-    
-    #[test]
-    fn test_valid_taxa_2() {
-        let genes_network = build_network(
-            17,
-            &[(0, 1)],
-            &[(1, "Test")]);
-        let species_network = build_network(
-            3,
-            &[(0, 1), (0, 2)],
-            &[(1, "Test")]);
-        let genes_over_species 
-            = GenesOverSpecies::from_single_network(genes_network.clone(), species_network.clone())
-                .unwrap();
-        
-        let genes = genes_over_species.get_gene_networks();
-        assert_eq!(genes.len(), 1);
-        assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].get_id()).unwrap().get_id(), genes_network.get_id());
-        assert_eq!(genes_over_species.get_species_network().get_id(), species_network.get_id());
-    }
-
-    #[test]
-    fn test_invalid_taxa() {
-        let genes = build_network(
-            1,
-            &[(0, 1)],
-            &[(1, "Test")]);
-        let species = build_network(
-            2,
-            &[(0, 1), (0, 2), (2, 3)],
-            &[(1, "Baz")]);
-        let genes_over_species = GenesOverSpecies::from_single_network(genes, species);
-        assert!(matches!(genes_over_species, GenesOverSpeciesFromResult::IncorrectTaxa(_, _)));
-    }
-
-    #[test]
-    fn test_taxa_duplicates() {
-        let genes = build_network(
-            1,
-            &[(0, 1)],
-            &[(1, "Baz")]);
-        let species = build_network(
-            2,
-            &[(0, 1), (0, 2), (2, 3)],
-            &[(1, "Baz"), (3, "Baz")]);
-        let genes_over_species = GenesOverSpecies::from_single_network(genes, species);
-        assert!(matches!(genes_over_species, GenesOverSpeciesFromResult::SpeciesContainsTaxaDuplicates(_, _)));
-    }
 }

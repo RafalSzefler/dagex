@@ -7,15 +7,10 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
+mod calculations;
+pub use calculations::update_fnv1a_32;
 
-mod types;
-mod construction_error;
-mod cache;
-mod buffer;
-mod string_buffer;
-mod layout_helpers;
-mod immutable_string;
-mod weak_immutable_string;
+pub(crate) mod init;
+mod fnv1a_32_hasher;
 
-pub use construction_error::ConstructionError;
-pub use immutable_string::ImmutableString;
+pub use fnv1a_32_hasher::FNV1a32Hasher;

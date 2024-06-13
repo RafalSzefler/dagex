@@ -6,7 +6,7 @@ pub struct Node {
 
 impl Node {
     #[inline(always)]
-    pub fn get_numeric_id(&self) -> i32 {
+    pub fn as_i32(&self) -> i32 {
         self.id
     }
 }
