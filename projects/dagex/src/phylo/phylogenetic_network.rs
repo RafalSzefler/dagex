@@ -16,6 +16,8 @@ pub struct PhylogeneticNetwork {
     hash_value: u32,
 }
 
+
+#[derive(Debug)]
 pub enum PhylogeneticNetworkFromResult {
     /// Passed graph is a phylogenetic network. Consumes passed value.
     Ok(PhylogeneticNetwork),

@@ -134,6 +134,7 @@ fn get_from_arrow_map(node: Node, arrow_map: &ArrowMap) -> &[Node] {
 }
 
 
+#[derive(Debug)]
 pub enum DirectedGraphFromResult {
     Ok(DirectedGraph),
 

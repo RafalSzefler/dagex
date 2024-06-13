@@ -78,7 +78,7 @@ fn test_ok() {
         HashMap::from_iter([(1, imm("a")), (2, imm("xyz"))]));
     
     let result = PhylogeneticNetwork::from_dto(&dto);
-    assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)));
+    assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)), "Invalid result: {result:?}");
     let network = result.unwrap();
     let taxa = network.get_taxa();
     assert_eq!(taxa.len(), 2);
@@ -122,7 +122,7 @@ fn test_tree() {
         HashMap::new());
     
     let result = PhylogeneticNetwork::from_dto(&dto);
-    assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)));
+    assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)), "Invalid result: {result:?}");
     let network = result.unwrap();
 
     assert!(network.get_graph().get_basic_properties().tree);
@@ -135,7 +135,7 @@ fn test_tree_child() {
         HashMap::new());
     
     let result = PhylogeneticNetwork::from_dto(&dto);
-    assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)));
+    assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)), "Invalid result: {result:?}");
     let network = result.unwrap();
 
     assert!(!network.get_graph().get_basic_properties().tree);

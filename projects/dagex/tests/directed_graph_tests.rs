@@ -1,10 +1,11 @@
-use dagex::core::{ArrowDTO, DirectedGraph, DirectedGraphDTO, DirectedGraphFromResult};
+use dagex::core::{ArrowDTO, DirectedGraph, DirectedGraphDTO, DirectedGraphFromResult, Node};
+use rstest::rstest;
 
 #[test]
 fn test_empty() {
     let dto = DirectedGraphDTO::new(0, Vec::new());
     let result = DirectedGraph::from_dto(&dto);
-    assert!(matches!(result, DirectedGraphFromResult::EmptyGraph));
+    assert!(matches!(result, DirectedGraphFromResult::EmptyGraph), "Invalid result: {result:?}");
 }
 
 #[test]
@@ -12,31 +13,30 @@ fn test_out_of_range() {
     let over_max = DirectedGraph::get_max_size() + 1;
     let dto = DirectedGraphDTO::new(over_max, Vec::new());
     let result = DirectedGraph::from_dto(&dto);
-    assert!(matches!(result, DirectedGraphFromResult::TooBigGraph));
+    assert!(matches!(result, DirectedGraphFromResult::TooBigGraph), "Invalid result: {result:?}");
 }
 
-#[test]
-fn test_trivial() {
-    for no in 2..10 {
-        let dto = DirectedGraphDTO::new(no, Vec::new());
-        let result = DirectedGraph::from_dto(&dto);
-        let graph = result.unwrap();
-        assert_eq!(graph.get_number_of_nodes(), no);
-        let props = graph.get_basic_properties();
-        assert!(props.acyclic);
-        assert!(!props.connected);
-        assert!(!props.rooted);
-        assert!(props.binary);
+#[rstest]
+fn test_trivial(#[values(2, 3, 4, 5, 6, 7, 8, 9, 10)] no: i32) {
+    let dto = DirectedGraphDTO::new(no, Vec::new());
+    let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
+    let graph = result.unwrap();
+    assert_eq!(graph.get_number_of_nodes(), no);
+    let props = graph.get_basic_properties();
+    assert!(props.acyclic);
+    assert!(!props.connected);
+    assert!(!props.rooted);
+    assert!(props.binary);
 
-        let mut node_count = 0;
-        for node in graph.iter_nodes() {
-            node_count += 1;
-            assert_eq!(graph.get_successors(node).len(), 0);
-            assert_eq!(graph.get_predecessors(node).len(), 0);
-        }
-
-        assert_eq!(node_count, no);
+    let mut node_count = 0;
+    for node in graph.iter_nodes() {
+        node_count += 1;
+        assert_eq!(graph.get_successors(node).len(), 0);
+        assert_eq!(graph.get_predecessors(node).len(), 0);
     }
+
+    assert_eq!(node_count, no);
 }
 
 fn build_dto(arrows: &[(i32, i32)]) -> DirectedGraphDTO {
@@ -55,27 +55,28 @@ fn build_dto(arrows: &[(i32, i32)]) -> DirectedGraphDTO {
 fn test_multi_arrows() {
     let dto = build_dto(&[(0, 1), (1, 0), (0, 1)]);
     let result = DirectedGraph::from_dto(&dto);
-    assert!(matches!(result, DirectedGraphFromResult::MultipleParallelArrows(_)));
+    assert!(matches!(result, DirectedGraphFromResult::MultipleParallelArrows(_)), "Invalid result: {result:?}");
 }
 
 #[test]
 fn test_arrows_out_of_range_1() {
     let dto = build_dto(&[(-1, 5)]);
     let result = DirectedGraph::from_dto(&dto);
-    assert!(matches!(result, DirectedGraphFromResult::ArrowOutsideOfNodesRange(_)));
+    assert!(matches!(result, DirectedGraphFromResult::ArrowOutsideOfNodesRange(_)), "Invalid result: {result:?}");
 }
 
 #[test]
 fn test_arrows_out_of_range_2() {
     let dto = DirectedGraphDTO::new(1, Vec::from(&[ArrowDTO::new(0, 5)]));
     let result = DirectedGraph::from_dto(&dto);
-    assert!(matches!(result, DirectedGraphFromResult::ArrowOutsideOfNodesRange(_)));
+    assert!(matches!(result, DirectedGraphFromResult::ArrowOutsideOfNodesRange(_)), "Invalid result: {result:?}");
 }
 
 #[test]
 fn test_cycle() {
     let dto = build_dto(&[(0, 1), (1, 0)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph.get_number_of_nodes(), 2);
     let props = graph.get_basic_properties();
@@ -93,6 +94,7 @@ fn test_cycle() {
 fn test_bigger_cycle() {
     let dto = build_dto(&[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph.get_number_of_nodes(), 6);
     let props = graph.get_basic_properties();
@@ -110,6 +112,7 @@ fn test_bigger_cycle() {
 fn test_rooted_cycle() {
     let dto = build_dto(&[(0, 1), (1, 0), (2, 0)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph.get_number_of_nodes(), 3);
     let props = graph.get_basic_properties();
@@ -124,6 +127,7 @@ fn test_rooted_cycle() {
 fn test_disconnected_cycle() {
     let dto = build_dto(&[(0, 1), (1, 0), (2, 3), (3, 2)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph.get_number_of_nodes(), 4);
     let props = graph.get_basic_properties();
@@ -137,6 +141,7 @@ fn test_disconnected_cycle() {
 fn test_binary() {
     let dto = build_dto(&[(0, 1), (1, 2), (1, 3), (2, 4)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph.get_number_of_nodes(), 5);
     let props = graph.get_basic_properties();
@@ -146,7 +151,7 @@ fn test_binary() {
     assert!(props.binary);
     assert!(graph.get_root().is_some_and(|val| val.as_i32() == 0));
     let mut leaves = Vec::from_iter(graph.get_leaves().into_iter().map(|n| *n));
-    leaves.sort_by_key(|n| n.as_i32());
+    leaves.sort_by_key(Node::as_i32);
     assert_eq!(leaves.len(), 2);
     assert_eq!(leaves[0].as_i32(), 3);
     assert_eq!(leaves[1].as_i32(), 4);
@@ -157,6 +162,7 @@ fn test_binary() {
 fn test_non_binary() {
     let dto = build_dto(&[(0, 1), (1, 2), (1, 3), (2, 4), (1, 5)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph.get_number_of_nodes(), 6);
     let props = graph.get_basic_properties();
@@ -166,7 +172,7 @@ fn test_non_binary() {
     assert!(!props.binary);
     assert!(graph.get_root().is_some_and(|val| val.as_i32() == 0));
     let mut leaves = Vec::from_iter(graph.get_leaves().into_iter().map(|n| *n));
-    leaves.sort_by_key(|n| n.as_i32());
+    leaves.sort_by_key(Node::as_i32);
     assert_eq!(leaves.len(), 3);
     assert_eq!(leaves[0].as_i32(), 3);
     assert_eq!(leaves[1].as_i32(), 4);
@@ -177,6 +183,7 @@ fn test_non_binary() {
 fn test_with_reticulation() {
     let dto = build_dto(&[(0, 1), (1, 2), (1, 3), (2, 4), (3, 5), (2, 5)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph.get_number_of_nodes(), 6);
     let props = graph.get_basic_properties();
@@ -186,7 +193,7 @@ fn test_with_reticulation() {
     assert!(props.binary);
     assert!(graph.get_root().is_some_and(|val| val.as_i32() == 0));
     let mut leaves = Vec::from_iter(graph.get_leaves().into_iter().map(|n| *n));
-    leaves.sort_by_key(|n| n.as_i32());
+    leaves.sort_by_key(Node::as_i32);
     assert_eq!(leaves.len(), 2);
     assert_eq!(leaves[0].as_i32(), 4);
     assert_eq!(leaves[1].as_i32(), 5);
@@ -196,6 +203,7 @@ fn test_with_reticulation() {
 fn test_equality_1() {
     let dto = build_dto(&[(0, 1), (1, 2), (1, 3), (2, 4), (3, 5), (2, 5)]);
     let result = DirectedGraph::from_dto(&dto);
+    assert!(matches!(result, DirectedGraphFromResult::Ok(_)), "Invalid result: {result:?}");
     let graph = result.unwrap();
     assert_eq!(graph, graph);
 }
