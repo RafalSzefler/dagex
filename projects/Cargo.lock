@@ -20,7 +20,7 @@ dependencies = [
 
 [[package]]
 name = "dagex"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "fnv1a_hasher",
  "immutable_string",
@@ -29,14 +29,14 @@ dependencies = [
 
 [[package]]
 name = "dagex_algorithms"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "dagex",
 ]
 
 [[package]]
 name = "fnv1a_hasher"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "ctor",
  "getrandom",
@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "immutable_string"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "ctor",
  "fnv1a_hasher",
