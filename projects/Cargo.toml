@@ -1,5 +1,8 @@
 [workspace]
 members = [
+    "utils/tagged_pointer",
+    "utils/cancellation_token",
+    "utils/streamz",
     "utils/fnv1a_hasher",
     "utils/immutable_string",
     "dagex",
