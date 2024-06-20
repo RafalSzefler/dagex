@@ -1,0 +1,10 @@
+[package]
+name = "cancellation_token"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+tagged_pointer = { path = "../tagged_pointer" }
+smallvec = { workspace = true }

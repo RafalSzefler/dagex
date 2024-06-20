@@ -5,7 +5,7 @@ pub struct GraphId {
     global_id: GlobalId
 }
 
-impl GraphId {    
+impl GraphId {
     #[inline(always)]
     pub fn generate_next() -> Self {
         Self { global_id: GlobalId::generate_next() }

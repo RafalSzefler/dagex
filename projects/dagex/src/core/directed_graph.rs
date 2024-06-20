@@ -141,7 +141,7 @@ pub enum DirectedGraphFromResult {
     /// Passed graph didn't have nodes.
     EmptyGraph,
 
-    /// Graph size exceeded `DirectedGraph::get_max_size()`.
+    /// Graph size exceeded [`DirectedGraph::get_max_size()`].
     TooBigGraph,
 
     /// Graph has multiple arrows between fixed (A, B) nodes. Returns the first
@@ -155,10 +155,10 @@ pub enum DirectedGraphFromResult {
 }
 
 impl DirectedGraphFromResult {
-    /// Unwraps `DirectedGraphConstructionResult::Ok` value.
+    /// Unwraps [`DirectedGraphFromResult::Ok`] value.
     /// 
     /// # Panics
-    /// Only and always when `self` is not `DirectedGraphConstructionResult::Ok`.
+    /// Only and always when `self` is not [`DirectedGraphFromResult::Ok`].
     #[inline(always)]
     pub fn unwrap(self) -> DirectedGraph {
         if let DirectedGraphFromResult::Ok(graph) = self {
@@ -173,10 +173,10 @@ impl DirectedGraphFromResult {
 }
 
 impl DirectedGraph {
-    /// Creates new `DirectedGraph` out of `DirectedGraphDTO`.
+    /// Creates new [`DirectedGraph`] out of [`DirectedGraphDTO`].
     /// 
     /// # Errors
-    /// For specific errors read `FromError` docs.
+    /// For specific errors read [`DirectedGraphFromResult`] docs.
     pub fn from_dto(value: &DirectedGraphDTO)
         -> DirectedGraphFromResult
     {
@@ -294,12 +294,12 @@ impl DirectedGraph {
         DirectedGraphFromResult::Ok(dg)
     }
 
-    /// Creates an unchecked `DirectedGraph`.
+    /// Creates an unchecked [`DirectedGraph`].
     /// 
     /// # Safety
     /// It is up to caller to ensure that all properties and invariants are
     /// satisfied and consistent. This also exposes internal structure of
-    /// `DirectedGraph`. Use with caution. The following invariants have to
+    /// [`DirectedGraph`]. Use with caution. The following invariants have to
     /// be satisfied:
     /// * `number_of_nodes > 0`.
     /// * `successors_map` and `predecessors_map` are of length equalt
