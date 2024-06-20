@@ -19,7 +19,7 @@ checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
 
 [[package]]
 name = "cancellation_token"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "smallvec",
  "tagged_pointer",
@@ -43,7 +43,7 @@ dependencies = [
 
 [[package]]
 name = "dagex"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "fnv1a_hasher",
  "immutable_string",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "dagex_algorithms"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "dagex",
 ]
@@ -66,7 +66,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "fnv1a_hasher"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "ctor",
  "getrandom",
@@ -192,7 +192,7 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
 name = "immutable_string"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "ctor",
  "fnv1a_hasher",
@@ -393,7 +393,7 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "streamz"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "syn"
@@ -408,7 +408,7 @@ dependencies = [
 
 [[package]]
 name = "tagged_pointer"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "toml_datetime"
