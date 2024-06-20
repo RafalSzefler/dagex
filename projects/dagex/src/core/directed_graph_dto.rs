@@ -1,6 +1,7 @@
 /// Represents arrow between source node and target node in a directed graph.
 /// 
-/// *Note:* it is immutable once created.
+/// # Notes
+/// Immutable once created.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct ArrowDTO {
     source: i32,
@@ -27,7 +28,8 @@ impl ArrowDTO {
 /// Represents directed graph as a pair consisting of number of nodes,
 /// and a collection of arrows.
 /// 
-/// *Note:* it is immutable once created.
+/// # Notes
+/// Immutable once created.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct DirectedGraphDTO {
     number_of_nodes: i32,

@@ -7,6 +7,9 @@ pub enum ConstructionError {
     PointerMisaligned,
 }
 
+/// Represents a pointer with `BIT_COUNT` number of bits available to store
+/// arbitrary data. The data is stored internally in the pointer itself,
+/// depending on its alignement.
 pub struct TaggedPointer<T: ?Sized, const BIT_COUNT: usize> {
     raw_ptr: *mut T,
 }
@@ -19,10 +22,10 @@ impl<T: ?Sized, const BIT_COUNT: usize> TaggedPointer<T, BIT_COUNT> {
         (1usize << BIT_COUNT) - 1
     };
 
-    /// Creates new instance of `TaggedPointer` out of raw pointer.
+    /// Creates new instance of [`TaggedPointer`] out of raw pointer.
     /// 
     /// # Errors
-    /// Returns `ConstructionError` if `raw_ptr` is not correctly aligned to
+    /// [`ConstructionError`] if `raw_ptr` is incorrectly aligned to
     /// `1 << BIT_COUNT` bytes.
     pub fn new(raw_ptr: *mut T) -> Result<Self, ConstructionError> {
         let repr_ptr = unsafe_size_it!(raw_ptr);
@@ -35,17 +38,17 @@ impl<T: ?Sized, const BIT_COUNT: usize> TaggedPointer<T, BIT_COUNT> {
         }
     }
 
-    /// Creates new instance of `TaggedPointer` out of raw pointer.
+    /// Creates new instance of [`TaggedPointer`] out of raw pointer.
     /// 
     /// # Safety
     /// It is up to caller to ensure that `raw_ptr` is aligned up to
-    /// `1 << BIT_COUNT` bytes. The behaviour of `TaggedPointer` is
+    /// `1 << BIT_COUNT` bytes. The behaviour of [`TaggedPointer`] is
     /// undefined otherwise, and likely to break.
     pub unsafe fn new_unchecked(raw_ptr: *mut T) -> Self {
         Self { raw_ptr: raw_ptr }
     }
 
-    /// Sets bit at `POSITION` to passed `Bit` value.
+    /// Sets bit at `POSITION` to passed [`Bit`] value.
     /// 
     /// # Panics
     /// Only when `POSITION >= BIT_COUNT`
@@ -78,7 +81,7 @@ impl<T: ?Sized, const BIT_COUNT: usize> TaggedPointer<T, BIT_COUNT> {
         self.as_raw_ptr()
     }
 
-    /// Dereferences current `TaggedPointer` to `&T`.
+    /// Dereferences current [`TaggedPointer`] to `&T`.
     /// 
     /// # Safety
     /// This is an inherently unsafe operation, it does not check whether
@@ -87,7 +90,7 @@ impl<T: ?Sized, const BIT_COUNT: usize> TaggedPointer<T, BIT_COUNT> {
         unsafe { &*self.as_raw_ptr() }
     }
 
-    /// Dereferences current `TaggedPointer` to `&mut T`.
+    /// Dereferences current [`TaggedPointer`] to `&mut T`.
     /// 
     /// # Safety
     /// This is an inherently unsafe operation, it does not check whether
@@ -96,6 +99,7 @@ impl<T: ?Sized, const BIT_COUNT: usize> TaggedPointer<T, BIT_COUNT> {
         unsafe { &mut *self.as_raw_ptr() }
     }
 
+    /// Retrieves all internally stored bits as a single `usize` value.
     pub fn get_tag(&self) -> usize {
         let repr = unsafe_size_it!(self.raw_ptr);
         *repr & Self::MASK
@@ -105,14 +109,14 @@ impl<T: ?Sized, const BIT_COUNT: usize> TaggedPointer<T, BIT_COUNT> {
     fn as_raw_ptr(&self) -> *mut T {
         let copy = self.raw_ptr;
         let repr_ptr = unsafe_size_it!(copy);
-        *repr_ptr = *repr_ptr & !Self::MASK;
+        *repr_ptr &= !Self::MASK;
         copy
     }
 }
 
 impl<T: ?Sized, const BIT_COUNT: usize> Clone for TaggedPointer<T, BIT_COUNT> {
-    /// Creates a clone of current `TaggedPointer`. This is in fact a copy
-    /// of `TaggedPointer`, and so no internal cloning actually happens.
+    /// Creates a clone of current [`TaggedPointer`]. This is in fact a copy
+    /// of [`TaggedPointer`], and so no internal cloning actually happens.
     /// 
     /// # Safety
     /// Clone shares state with `self`, meaning caller has to be extra

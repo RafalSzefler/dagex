@@ -9,7 +9,7 @@ pub struct GenesOverSpecies {
 }
 
 pub enum GenesOverSpeciesFromResult {
-    /// Correct `GenesOverSpecies` object.
+    /// Correct [`GenesOverSpecies`] object.
     Ok(GenesOverSpecies),
 
     /// Collection of gene networks is empty. This is not allowed.
@@ -28,10 +28,10 @@ pub enum GenesOverSpeciesFromResult {
 }
 
 impl GenesOverSpeciesFromResult {
-    /// Unwraps `FromNetworksResult::Ok` value.
+    /// Unwraps [`GenesOverSpeciesFromResult::Ok`] value.
     /// 
     /// # Panics
-    /// Only and always when `self` is not `FromNetworksResult::Ok`.
+    /// Only and always when `self` is not [`GenesOverSpeciesFromResult::Ok`].
     #[inline(always)]
     pub fn unwrap(self) -> GenesOverSpecies {
         if let GenesOverSpeciesFromResult::Ok(genes_over_species) = self {
@@ -46,7 +46,7 @@ impl GenesOverSpeciesFromResult {
 }
 
 impl GenesOverSpecies {
-    /// Creates an unchecked `GenesOverSpecies`.
+    /// Creates an unchecked [`GenesOverSpecies`].
     /// 
     /// # Safety
     /// It is up to caller to ensure that all properties and invariants are

@@ -10,6 +10,6 @@ ctor = { workspace = true, optional = true }
 getrandom = { workspace = true, optional = true }
 
 [features]
-default = ["use-ctor", "use-getrandom"]
-use-ctor = ["dep:ctor"]
-use-getrandom = ["dep:getrandom"]
+default = ["ctor", "getrandom"]
+ctor = ["dep:ctor"]
+getrandom = ["dep:getrandom"]

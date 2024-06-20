@@ -14,10 +14,14 @@ use crate::{
     ConstructionError,
 };
 
+/// Represents a string that cannot change during its lifetime. The struct
+/// is thread safe, and uses a global cache of strings internally, so creating
+/// it out of the same string is fast and memory efficient.
 pub struct ImmutableString {
     content: StringBuffer,
 }
 
+/// Stores internal information about [`ImmutableString`].
 #[derive(Clone)]
 pub struct ImmutableStringInfo {
     pub strong_count: AtomicUnderlyingType,
@@ -28,7 +32,7 @@ pub struct ImmutableStringInfo {
     pub weak_count: AtomicUnderlyingType,
 }
 
-#[cfg(feature="use-ctor")]
+#[cfg(feature="ctor")]
 mod empty_impl
 {
     use ctor::ctor;
@@ -45,7 +49,7 @@ mod empty_impl
     pub(super) fn get_empty() -> &'static ImmutableString { &_EMPTY }
 }
 
-#[cfg(not(feature="use-ctor"))]
+#[cfg(not(feature="ctor"))]
 mod empty_impl
 {
     use std::sync::OnceLock;
@@ -68,17 +72,17 @@ impl ImmutableString {
     #[inline(always)]
     pub fn empty() -> &'static ImmutableString { empty_impl::get_empty() }
 
-    /// Creates new `ImmutableString` from `text`. If given `text` was
-    /// already used, it will retrieve it from the internal cache without
-    /// any copies. Otherwise it will copy `text`, construct new `ImmutableString`
-    /// and cache the result for later usage.
+    /// Creates new [`ImmutableString`] from `text`. If given `text` was
+    /// already used, it will retrieve it from a global cache without
+    /// any copies. Otherwise it will copy `text`, construct new
+    /// [`ImmutableString`] and cache the result for later usage.
     /// 
     /// # Errors
     ///
-    /// * `ConstructionError::LengthTooBig` if `text.len()` exceeds
-    /// `ImmutableString::get_max_length()`.
+    /// * [`ConstructionError::LengthTooBig`] if `text.len()` exceeds
+    /// [`ImmutableString::get_max_length()`].
     /// 
-    /// * `ConstructionError::AllocationError` if is not able
+    /// * [`ConstructionError::AllocationError`] if is not able
     /// to allocate memory for new `ImmutableString`.
     pub fn get(text: &str) -> Result<Self, ConstructionError> {
         if text.is_empty() {
@@ -170,7 +174,7 @@ impl ImmutableString {
 impl Clone for ImmutableString {
     /// This method doesn't actually clone the string, but it
     /// increments the internal reference counter instead. This operation
-    /// is thread safe and allows sharing of the `ImmutableString`, without
+    /// is thread safe and allows sharing of the [`ImmutableString`], without
     /// the need of copy and allocation.
     fn clone(&self) -> Self {
         self.content.inc_strong();
@@ -193,10 +197,10 @@ impl Drop for ImmutableString {
             _removed_weak = write.remove(&key);
         }
 
-        let _local_weak = WeakImmutableString
-            ::from_buffer(&self.content);
         // We want both _removed_weak and _local_weak to be dropped
         // outside of lock.
+        let _local_weak = WeakImmutableString
+            ::from_buffer(&self.content);
     }
 }
 

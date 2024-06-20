@@ -35,15 +35,15 @@ pub enum PhylogeneticNetworkFromResult {
     TaxaNotLeaves(DirectedGraph),
 
     /// Internal error of graph construction. The internal value is guaranteed
-    /// to not be `DirectedGraphConstructionResult::Ok`.
+    /// to not be [`DirectedGraphFromResult::Ok`].
     GraphError(DirectedGraphFromResult),
 }
 
 impl PhylogeneticNetworkFromResult {
-    /// Unwraps `PhyloConstructionResult::Ok` value.
+    /// Unwraps [`PhylogeneticNetworkFromResult::Ok`] value.
     /// 
     /// # Panics
-    /// Only and always when `self` is not `PhyloConstructionResult::Ok`.
+    /// Only and always when `self` is not [`PhylogeneticNetworkFromResult::Ok`].
     #[inline(always)]
     pub fn unwrap(self) -> PhylogeneticNetwork {
         if let PhylogeneticNetworkFromResult::Ok(network) = self {
@@ -58,7 +58,7 @@ impl PhylogeneticNetworkFromResult {
 }
 
 impl PhylogeneticNetwork {
-    /// Constructs `PhylogeneticNetwork` directly.
+    /// Constructs [`PhylogeneticNetwork`] directly.
     /// 
     /// # Safety
     /// This method is unsafe since it doesn't verify invariants:
@@ -97,8 +97,8 @@ impl PhylogeneticNetwork {
         Self { graph, taxa, id, hash_value }
     }
 
-    /// Safely constructs `PhylogeneticNetwork` directly and calculates/verifies
-    /// all associated invariants and properties.
+    /// Safely constructs [`PhylogeneticNetwork`] directly and
+    /// calculates/verifies all associated invariants and properties.
     pub fn from_graph_and_taxa(
         graph: DirectedGraph,
         taxa: HashMap<Node, Taxon>)
@@ -164,7 +164,7 @@ impl PhylogeneticNetwork {
         &self.taxa
     }
 
-    /// Returns root of the `PhyologeneticNetwork`.
+    /// Returns root of the [`PhylogeneticNetwork`].
     /// 
     /// # Panics
     /// Only when the network is constructed in an unsafe way, i.e. when

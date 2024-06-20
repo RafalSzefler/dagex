@@ -15,10 +15,10 @@ impl Bit {
     pub const ZERO: Self = { Self { value: 0 } };
     pub const ONE: Self = { Self { value: 1 } };
 
-    /// Creates new instance of `Bit` out of value.
+    /// Creates new instance of [`Bit`] out of value.
     /// 
     /// # Errors
-    /// Return `BitConstructionError::ValueOutOfRange` if passed value is
+    /// Return [`BitConstructionError::ValueOutOfRange`] if passed value is
     /// greater than 1.
     pub fn new(value: u8) -> Result<Self, BitConstructionError> {
         if value > 1 {
@@ -30,7 +30,7 @@ impl Bit {
         }
     }
 
-    /// Creates new instance of `Bit` out of value.
+    /// Creates new instance of [`Bit`] out of value.
     /// 
     /// # Safety
     /// This is an unsafe operation and it is up to caller to ensure that
@@ -39,7 +39,7 @@ impl Bit {
         Self { value }
     }
 
-    /// Returns numeric representation of current `Bit` value. Either
+    /// Returns numeric representation of current [`Bit`] value. Either
     /// 0 or 1.
     #[inline(always)]
     pub fn as_u8(&self) -> u8 { self.value }

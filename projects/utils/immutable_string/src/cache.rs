@@ -5,7 +5,7 @@ use crate::{buffer::Buffer, weak_immutable_string::WeakImmutableString};
 pub(crate) type CacheType = RwLock<HashMap<Buffer, WeakImmutableString>>;
 
 
-#[cfg(feature="use-ctor")]
+#[cfg(feature="ctor")]
 mod cache_impl
 {
     use std::{collections::HashMap, sync::RwLock};
@@ -21,7 +21,7 @@ mod cache_impl
     pub(super) fn get() -> &'static CacheType { &_CACHE }
 }
 
-#[cfg(not(feature="use-ctor"))]
+#[cfg(not(feature="ctor"))]
 mod cache_impl
 {
     use std::{collections::HashMap, sync::{OnceLock, RwLock}};

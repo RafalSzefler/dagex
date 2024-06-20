@@ -7,12 +7,14 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-mod callable_with_flag;
+pub(crate) mod pdi;
+pub(crate) mod callable;
 mod errors;
-mod traits;
-mod core;
+pub(crate) mod cancellation_token_inner;
+mod cancellation_token;
 
-pub(crate) use callable_with_flag::CallableWithFlag;
 pub use errors::IsCancelled;
-pub use traits::{CancellationTokenRegistration, CancellationToken, CancellationTokenSource};
-
+pub use cancellation_token::{
+    CancellationTokenSource,
+    CancellationToken,
+    CancellationTokenRegistration};

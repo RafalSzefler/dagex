@@ -1,6 +1,6 @@
 pub(crate) const FNV1A_32_INITIAL: u32 = 0x811c9dc5;
 
-#[cfg(feature="use-getrandom")]
+#[cfg(feature="getrandom")]
 mod rand_impl {
     use crate::update_fnv1a_32;
 
@@ -16,7 +16,7 @@ mod rand_impl {
         return hash;
     }
 
-    #[cfg(feature="use-ctor")]
+    #[cfg(feature="ctor")]
     mod initial_impl {
         use ctor::ctor;
 
@@ -36,7 +36,7 @@ mod rand_impl {
 
     }
 
-    #[cfg(not(feature="use-ctor"))]
+    #[cfg(not(feature="ctor"))]
     mod initial_impl {
         use std::sync::OnceLock;
 
@@ -54,7 +54,7 @@ mod rand_impl {
     }
 }
 
-#[cfg(not(feature="use-getrandom"))]
+#[cfg(not(feature="getrandom"))]
 mod rand_impl {
     use super::FNV1A_32_INITIAL;
 
