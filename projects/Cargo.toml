@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "utils/array",
     "utils/tagged_pointer",
     "utils/cancellation_token",
     "utils/streamz",

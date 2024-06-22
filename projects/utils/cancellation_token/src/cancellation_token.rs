@@ -1,11 +1,13 @@
 #![allow(clippy::derivable_impls)]
+
+use core::fmt::{Debug, Formatter};
 use crate::{
     cancellation_token_inner::{
         CancellationTokenInner,
         CancellationTokenInnerRegistration},
     callable::Callable,
     pdi,
-    IsCancelled};
+    TokenState};
 
 type CTInner = CancellationTokenInner<pdi::PDIMarkedVector<Callable<'static>>>;
 type CTReg = CancellationTokenInnerRegistration<pdi::PDIMarkedVector<Callable<'static>>>;
@@ -18,12 +20,18 @@ pub struct CancellationTokenRegistration {
     inner: CTReg,
 }
 
+impl Debug for CancellationTokenRegistration {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("CancellationTokenRegistration").finish()
+    }
+}
+
 impl CancellationTokenRegistration {
     /// Unregisters current registration. Calls to this function after
     /// the first one is noop.
     #[inline(always)]
     pub fn unregister(self) {
-        self.inner.unregister();
+        self.inner.unregister()
     }
 }
 
@@ -37,35 +45,45 @@ pub struct CancellationToken {
     inner: CTInner,
 }
 
+impl Debug for CancellationToken {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CancellationToken")
+            .field("id", &self.id()).finish()
+    }
+}
+
+pub struct RegistrationError<T>
+{
+    pub on_cancel: T,
+    pub state: TokenState,
+}
+
 impl CancellationToken {
-    /// Returns empty object if token is cancelled.
-    /// 
-    /// # Errors
-    /// [`IsCancelled`] if the token is already cancelled.
+    pub fn id(&self) -> usize {
+        self.inner.id()
+    }
+    /// Retrieves current state of the token.
     #[inline(always)]
-    pub fn is_cancelled(&self) -> Result<(), IsCancelled> {
-        if self.inner.is_cancelled() {
-            Err(IsCancelled)
-        }
-        else
-        {
-            Ok(())
-        }
+    pub fn get_state(&self) -> TokenState {
+        self.inner.get_state()
     }
 
     /// Register callback to be called on cancellation.
     /// 
     /// # Errors
-    /// Returns [`IsCancelled`] if the token is already cancelled. The callback
-    /// won't be called in such situation.
+    /// `on_cancel` callback won't be called on errors, and will be return
+    /// together with specific errors:
+    /// * [`TokenState::IsCancelled`] if the token is already cancelled.
+    /// * [`TokenState::NotCancellable`] if the token is not cancellable.
     pub fn register<T: FnMut() + 'static>(&mut self, on_cancel: T)
-        -> Result<CancellationTokenRegistration, IsCancelled>
+        -> Result<CancellationTokenRegistration, RegistrationError<T>>
     {
         match self.inner.register(on_cancel) {
             Ok(value) => {
                 Ok(CancellationTokenRegistration { inner: value })
             },
-            Err(err) => Err(err)
+            Err((on_cancel, state))
+                => Err(RegistrationError { on_cancel, state})
         }
     }
 }
@@ -80,6 +98,10 @@ pub struct CancellationTokenSource {
 }
 
 impl CancellationTokenSource {
+    pub fn id(&self) -> usize {
+        self.inner.id()
+    }
+
     /// Retrieves the associated token.
     #[inline(always)]
     pub fn token(&self) -> CancellationToken {
@@ -93,10 +115,17 @@ impl CancellationTokenSource {
     /// success.
     /// 
     /// # Errors
-    /// [`IsCancelled`] if token source is already cancelled.
+    /// [`TokenState`] if token source is already cancelled.
     #[inline(always)]
-    pub fn cancel(&mut self) -> Result<(), IsCancelled> {
+    pub fn cancel(&mut self) -> Result<(), TokenState> {
         self.inner.cancel()
+    }
+}
+
+impl Debug for CancellationTokenSource {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CancellationTokenSource")
+            .field("id", &self.id()).finish()
     }
 }
 
@@ -112,6 +141,13 @@ impl Clone for CancellationToken {
 impl Default for CancellationTokenSource {
     fn default() -> Self {
         Self { inner: CTInner::default() }
+    }
+}
+
+impl Default for CancellationToken {
+    /// Create a non-cancellable token, not associated with any source.
+    fn default() -> Self {
+        Self { inner: CTInner::create_not_cancellable() }
     }
 }
 

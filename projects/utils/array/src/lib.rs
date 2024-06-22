@@ -7,11 +7,6 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-mod errors;
-mod results;
+mod array;
 
-pub use errors::{ReadError, WriteError};
-pub use results::{ReadResult, WriteResult};
-
-pub mod sync_stream;
-pub mod concrete;
+pub use array::Array;

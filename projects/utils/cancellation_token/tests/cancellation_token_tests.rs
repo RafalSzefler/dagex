@@ -1,6 +1,6 @@
 use std::{sync::{Arc, Mutex}, thread, time::Duration};
 
-use cancellation_token::CancellationTokenSource;
+use cancellation_token::{CancellationToken, CancellationTokenSource, TokenState};
 
 #[test]
 fn test_simple_cancellation() {
@@ -40,7 +40,7 @@ fn test_threaded_cancellation() {
 
     let mut cts = CancellationTokenSource::default();
     let token = cts.token();
-    assert!(token.is_cancelled().is_ok());
+    assert_eq!(token.get_state(), TokenState::Ok);
     assert!(cts.cancel().is_ok());
     assert!(cts.cancel().is_err());
 
@@ -50,7 +50,7 @@ fn test_threaded_cancellation() {
         let set_clone = value.clone();
         handles.push(thread::spawn(move || {
             thread::sleep(Duration::from_millis(100));
-            if token.is_cancelled().is_err() {
+            if token.get_state() != TokenState::Ok {
                 return;
             }
             let mut guard = set_clone.lock().unwrap();
@@ -65,11 +65,12 @@ fn test_threaded_cancellation() {
     assert_eq!(get(), INITIAL);
 }
 
+
 #[test]
 fn test_threaded_cancellation_2() {
     let mut cts = CancellationTokenSource::default();
     let token = cts.token();
-    assert!(token.is_cancelled().is_ok());
+    assert_eq!(token.get_state(), TokenState::Ok);
 
     let counter = Arc::new(Mutex::new(0usize));
 
@@ -83,7 +84,7 @@ fn test_threaded_cancellation_2() {
 
     let counter_clone = counter.clone();
     let handle = thread::spawn(move || {
-        while token.is_cancelled().is_ok() {
+        while token.get_state() == TokenState::Ok {
             let mut guard = counter_clone.lock().unwrap();
             *guard = *guard + 1;
         }
@@ -96,4 +97,15 @@ fn test_threaded_cancellation_2() {
     assert!(cts.cancel().is_ok());
     handle.join().unwrap();
     assert!(get() >= last_value);
+}
+
+
+#[test]
+fn test_not_cancellable() {
+    let mut token = CancellationToken::default();
+    assert_eq!(token.get_state(), TokenState::NotCancellable);
+
+    let func = || {};
+    let err = token.register(func).unwrap_err();
+    assert_eq!(err.state, TokenState::NotCancellable);
 }

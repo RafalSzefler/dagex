@@ -9,11 +9,11 @@
 )]
 pub(crate) mod pdi;
 pub(crate) mod callable;
-mod errors;
+mod token_state;
 pub(crate) mod cancellation_token_inner;
 mod cancellation_token;
 
-pub use errors::IsCancelled;
+pub use token_state::TokenState;
 pub use cancellation_token::{
     CancellationTokenSource,
     CancellationToken,

@@ -6,3 +6,5 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+cancellation_token = { path = "../cancellation_token" }
+array = { path = "../array" }
