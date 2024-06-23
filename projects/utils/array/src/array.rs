@@ -1,7 +1,7 @@
 use core::hash::{Hash, Hasher};
 use std::{alloc::Layout, ptr::{self, null_mut}};
 
-/// Represents a dynanmically created array with length known at runtime.
+/// Represents a dynamically created array with length known at runtime.
 /// Otherwise a thin wrapper around slices.
 pub struct Array<T>
     where T: Sized + Default
@@ -100,8 +100,9 @@ impl<T> Drop for Array<T>
             return;
         }
 
-        let layout = Self::layout(self.length);
-        unsafe { std::alloc::dealloc(self.ptr.cast::<u8>(), layout) };
+        let layout = Self::layout(length);
+        let raw_ptr = self.ptr.cast::<u8>();
+        unsafe { std::alloc::dealloc(raw_ptr, layout) };
         self.ptr = null_mut();
         self.length = 0;
     }
@@ -113,7 +114,8 @@ impl<T> core::fmt::Debug for Array<T>
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let numeric_value = core::ptr::addr_of!(self.ptr).cast::<usize>();
         f.debug_struct("Array")
-            .field("address", &numeric_value).field("length", &self.length)
+            .field("address", &numeric_value)
+            .field("length", &self.length)
             .finish()
     }
 }
