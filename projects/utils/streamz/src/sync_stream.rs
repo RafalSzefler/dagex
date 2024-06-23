@@ -26,6 +26,7 @@ pub trait SyncReadStream {
 }
 
 pub trait SyncWriteStream {
+    /// Returns maximum buffer size for write operations.
     fn max_write_size() -> usize;
 
     /// Writes entire buffer into stream. On success returns [`WriteResult`].

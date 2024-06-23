@@ -1,13 +1,14 @@
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericError {
     error_code: i32,
     message: String,
+    stream_id: String,
 }
 
 impl GenericError {
     #[inline(always)]
-    pub fn new(error_code: i32, message: String) -> Self {
-        Self { error_code, message }
+    pub fn new(error_code: i32, message: String, stream_id: String) -> Self {
+        Self { error_code, message, stream_id }
     }
 
     #[inline(always)]
@@ -15,9 +16,12 @@ impl GenericError {
 
     #[inline(always)]
     pub fn message(&self) -> &String { &self.message }
+
+    #[inline(always)]
+    pub fn stream_id(&self) -> &String { &self.message }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum ReadError {
     /// Stream is closed.
     StreamClosed,
@@ -32,7 +36,7 @@ pub enum ReadError {
     Generic(GenericError),
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum WriteError {
     /// Stream is closed.
     StreamClosed,
@@ -47,7 +51,7 @@ pub enum WriteError {
     Generic(GenericError),
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum FlushError {
     /// Stream is closed.
     StreamClosed,

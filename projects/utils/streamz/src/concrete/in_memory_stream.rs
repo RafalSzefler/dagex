@@ -12,6 +12,8 @@ use crate::{
     WriteError,
     WriteResult};
 
+use super::defaults::MAX_BUFFER_SIZE;
+
 pub struct InMemoryStream {
     pages: Vec<Array<u8>>,
     buffer_size: i32,
@@ -22,7 +24,7 @@ pub struct InMemoryStream {
 impl InMemoryStream {
     pub(super) fn new(buffer_size: i32) -> Self {
         Self {
-            pages: Vec::new(),
+            pages: Vec::default(),
             buffer_size: buffer_size,
             start_idx: 0,
             end_idx: 0,
@@ -30,11 +32,7 @@ impl InMemoryStream {
     }
 }
 
-impl InMemoryStream {    
-    #[inline(always)]
-    const fn max_buffer_size() -> usize { (i32::MAX - 2048) as usize }
-
-    #[inline(always)]
+impl InMemoryStream {
     fn get_page_for_idx_mut<T: Conv<usize>>(&mut self, idx: &T) -> &mut Array<u8> {
         let buffer_size = self.buffer_size.convert();
         let page_idx = idx.convert() / buffer_size;
@@ -43,11 +41,53 @@ impl InMemoryStream {
         }
         &mut self.pages[page_idx]
     }
+
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::cast_sign_loss)]
+    fn clean_it_up(&mut self) {
+        if self.start_idx == 0 && self.end_idx == 0 {
+            return;
+        }
+
+        // Rotate begining.
+        let buffer_size = self.buffer_size.convert();
+        let start_page_idx = self.start_idx.convert() / buffer_size;
+        if start_page_idx == 0 {
+            return;
+        }
+        self.pages.rotate_left(start_page_idx);
+        self.start_idx -= (start_page_idx * buffer_size) as i32;
+        self.end_idx -= (start_page_idx * buffer_size) as i32;
+
+        // Truncate end.
+        let end_page_idx = self.end_idx / self.buffer_size;
+        let pages_len = self.pages.len() as i32;
+        if end_page_idx < pages_len - 3 {
+            self.pages.truncate((end_page_idx + 2) as usize);
+            self.pages.shrink_to_fit();
+        }
+
+        // Copy beginning if small enough.
+        if self.start_idx == self.end_idx {
+            self.start_idx = 0;
+            self.end_idx = 0;
+        }
+        else if (self.end_idx < self.buffer_size) && (self.start_idx > 0) {
+            let start_idx = self.start_idx.convert();
+            let end_idx = self.end_idx.convert();
+            let first_page = self.pages[0].as_slice_mut();
+            first_page.copy_within(start_idx..end_idx, 0);
+            self.start_idx = 0;
+            self.end_idx -= start_idx as i32;
+        }
+    }
 }
 
 
 impl SyncReadStream for InMemoryStream {
-    fn max_read_size() -> usize { Self::max_buffer_size() }
+    fn max_read_size() -> usize { MAX_BUFFER_SIZE }
 
     fn read_with_cancellation(&mut self, buffer: &mut [u8], ct: &mut CancellationToken)
         -> Result<ReadResult, ReadError>
@@ -100,12 +140,14 @@ impl SyncReadStream for InMemoryStream {
             self.start_idx = start as i32;
         }
 
+        self.clean_it_up();
+
         return Ok(ReadResult::new(total_read));
     }
 }
 
 impl SyncWriteStream for InMemoryStream {
-    fn max_write_size() -> usize { Self::max_buffer_size() }
+    fn max_write_size() -> usize { MAX_BUFFER_SIZE }
 
     fn write_with_cancellation(&mut self, buffer: &[u8], ct: &mut CancellationToken)
         -> Result<WriteResult, WriteError>

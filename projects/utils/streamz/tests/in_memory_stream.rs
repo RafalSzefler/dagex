@@ -120,11 +120,8 @@ fn test_in_memory_stream_big_loop() {
 #[test]
 fn test_randomized() {
     const LOOP_SIZE: usize = 2000;
-    const STREAM_BUFFER: usize = 100;
-    const ARRAY_LENGTH: Range<usize> = (STREAM_BUFFER - 20)..(STREAM_BUFFER + 20);
-    let mut builder = InMemoryStreamBuilder::default();
-    builder.set_buffer_size(STREAM_BUFFER);
-    let mut stream = builder.build().unwrap();
+    const STREAM_BUFFER: usize = 14;
+    const ARRAY_LENGTH: Range<usize> = (STREAM_BUFFER - 10)..(STREAM_BUFFER + 10);
 
     fn generate_array(len_range: Range<usize>) -> Array<u8> {
         let mut rng = rand::thread_rng();
@@ -143,35 +140,44 @@ fn test_randomized() {
         arr
     }
 
-    let mut total_write = Vec::<u8>::with_capacity(LOOP_SIZE * STREAM_BUFFER);
-    let mut total_read = Vec::<u8>::with_capacity(LOOP_SIZE * STREAM_BUFFER);
+    let mut initial_stream_buffer_size = STREAM_BUFFER;
 
-    for _ in 0..LOOP_SIZE {
-        let write = generate_array_with_content(ARRAY_LENGTH);
-        let write_slice = write.as_slice();
-        let write_len = write_slice.len();
-        stream.write(write_slice).unwrap();
-        total_write.extend_from_slice(write_slice);
+    for _ in 0..5 {
+        let mut builder = InMemoryStreamBuilder::default();
+        builder.set_buffer_size(initial_stream_buffer_size);
+        let mut stream = builder.build().unwrap();
 
-        let mut read = generate_array(ARRAY_LENGTH);
-        let read_buffer = read.as_slice_mut();
-        let result = stream.read(read_buffer).unwrap();
-        let read_bytes = result.read_bytes();
-        assert!(read_bytes >= core::cmp::min(read_buffer.len(), write_len));
+        let mut total_write = Vec::<u8>::with_capacity(LOOP_SIZE * STREAM_BUFFER);
+        let mut total_read = Vec::<u8>::with_capacity(LOOP_SIZE * STREAM_BUFFER);
 
-        total_read.extend_from_slice(&read_buffer[0..read_bytes]);
-    }
+        for _ in 0..LOOP_SIZE {
+            let write = generate_array_with_content(ARRAY_LENGTH);
+            let write_slice = write.as_slice();
+            let write_len = write_slice.len();
+            stream.write(write_slice).unwrap();
+            total_write.extend_from_slice(write_slice);
 
-    let mut final_read = generate_array(ARRAY_LENGTH);
-    let final_read_slice = final_read.as_slice_mut();
-    loop {
-        let result = stream.read(final_read_slice).unwrap();
-        let read_bytes = result.read_bytes();
-        if read_bytes == 0 {
-            break;
+            let mut read = generate_array(ARRAY_LENGTH);
+            let read_buffer = read.as_slice_mut();
+            let result = stream.read(read_buffer).unwrap();
+            let read_bytes = result.read_bytes();
+            assert!(read_bytes >= core::cmp::min(read_buffer.len(), write_len));
+
+            total_read.extend_from_slice(&read_buffer[0..read_bytes]);
         }
-        total_read.extend_from_slice(&final_read_slice[0..read_bytes]);
-    }
 
-    assert_eq!(total_write, total_read);
+        let mut final_read = generate_array(ARRAY_LENGTH);
+        let final_read_slice = final_read.as_slice_mut();
+        loop {
+            let result = stream.read(final_read_slice).unwrap();
+            let read_bytes = result.read_bytes();
+            if read_bytes == 0 {
+                break;
+            }
+            total_read.extend_from_slice(&final_read_slice[0..read_bytes]);
+        }
+
+        assert_eq!(total_write, total_read);
+        initial_stream_buffer_size *= 10;
+    }
 }
