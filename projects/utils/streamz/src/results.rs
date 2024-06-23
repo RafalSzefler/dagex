@@ -1,3 +1,5 @@
+#![allow(clippy::new_without_default)]
+
 use std::marker::PhantomData;
 
 #[derive(Debug)]
@@ -6,7 +8,7 @@ pub struct ReadResult {
 }
 
 impl ReadResult {
-    pub(crate) fn new(read_bytes: usize) -> Self {
+    pub fn new(read_bytes: usize) -> Self {
         Self { read_bytes }
     }
 
@@ -19,7 +21,18 @@ pub struct WriteResult {
 }
 
 impl WriteResult {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
+        Self { _phantom: PhantomData }
+    }
+}
+
+#[derive(Debug)]
+pub struct FlushResult {
+    _phantom: PhantomData<()>,
+}
+
+impl FlushResult {
+    pub fn new() -> Self {
         Self { _phantom: PhantomData }
     }
 }

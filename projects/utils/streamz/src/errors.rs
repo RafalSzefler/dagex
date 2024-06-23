@@ -19,14 +19,42 @@ impl GenericError {
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum ReadError {
+    /// Stream is closed.
     StreamClosed,
-    InvalidOutputBuffer,
+
+    /// Passsed buffer is too big.
+    OutputBufferTooBig,
+
+    /// Read operation has been cancelled.
+    IsCancelled,
+
+    /// Stream specific generic error.
     Generic(GenericError),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum WriteError {
+    /// Stream is closed.
     StreamClosed,
-    InvalidInputBuffer,
+
+    /// Passsed buffer is too big.
+    InputBufferTooBig,
+
+    /// Write operation has been cancelled.
+    IsCancelled,
+
+    /// Stream specific generic error.
+    Generic(GenericError),
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub enum FlushError {
+    /// Stream is closed.
+    StreamClosed,
+
+    /// Flush operation has been cancelled.
+    IsCancelled,
+
+    /// Stream specific generic error.
     Generic(GenericError),
 }

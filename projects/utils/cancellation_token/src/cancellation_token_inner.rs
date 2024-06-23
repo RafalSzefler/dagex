@@ -51,7 +51,7 @@ impl<T: Pdi> CancellationTokenInnerRegistration<T> {
 
 impl<T: Pdi> CancellationTokenInner<T> {
     pub fn id(&self) -> usize {
-        let addr = ptr::addr_of!(self.ptr) as *const usize;
+        let addr = ptr::addr_of!(self.ptr).cast::<usize>();
         unsafe { *addr }
     }
 

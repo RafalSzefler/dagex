@@ -31,7 +31,7 @@ impl CancellationTokenRegistration {
     /// the first one is noop.
     #[inline(always)]
     pub fn unregister(self) {
-        self.inner.unregister()
+        self.inner.unregister();
     }
 }
 
@@ -62,6 +62,7 @@ impl CancellationToken {
     pub fn id(&self) -> usize {
         self.inner.id()
     }
+
     /// Retrieves current state of the token.
     #[inline(always)]
     pub fn get_state(&self) -> TokenState {

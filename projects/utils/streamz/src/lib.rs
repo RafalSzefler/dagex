@@ -7,11 +7,12 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
+pub(crate) mod conv;
 mod errors;
 mod results;
 
-pub use errors::{ReadError, WriteError};
-pub use results::{ReadResult, WriteResult};
+pub use errors::{ReadError, WriteError, FlushError};
+pub use results::{ReadResult, WriteResult, FlushResult};
 
 pub mod sync_stream;
 pub mod concrete;

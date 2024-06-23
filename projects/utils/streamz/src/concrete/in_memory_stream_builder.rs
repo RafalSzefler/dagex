@@ -1,33 +1,42 @@
-use super::InMemoryStream;
-
-pub const DEFAULT_BUFFER_SIZE: i32 = 1 << 14;
-
+use super::{defaults::DEFAULT_BUFFER_SIZE, InMemoryStream};
 
 #[derive(Debug)]
 pub enum InMemoryStreamBuildError {
+    /// Passed buffer bigger than [`InMemoryStreamBuilder::max_buffer_size()`].
     BufferSizeTooSmall,
+
+    /// Passed buffer smaller than [`InMemoryStreamBuilder::min_buffer_size()`].
     BufferSizeTooBig,
 }
 
 pub struct InMemoryStreamBuilder {
-    buffer_size: i32,
+    buffer_size: usize,
 }
 
 impl InMemoryStreamBuilder {
-    pub fn set_buffer_size(&mut self, value: i32) {
+    pub const fn max_buffer_size() -> usize { (i32::MAX - 2048) as usize }
+
+    pub const fn min_buffer_size() -> usize { 2 }
+
+    pub fn set_buffer_size(&mut self, value: usize) {
         self.buffer_size = value;
     }
 
+    /// Builds [`InMemoryStream`].
+    /// 
+    /// # Errors
+    /// For the description of errors see [`InMemoryStreamBuildError`] docs.
+    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
     pub fn build(self) -> Result<InMemoryStream, InMemoryStreamBuildError> {
-        if self.buffer_size < InMemoryStream::min_buffer_size() {
+        if self.buffer_size < Self::min_buffer_size() {
             return Err(InMemoryStreamBuildError::BufferSizeTooSmall);
         }
 
-        if self.buffer_size > InMemoryStream::max_buffer_size() {
+        if self.buffer_size > Self::max_buffer_size() {
             return Err(InMemoryStreamBuildError::BufferSizeTooBig);
         }
 
-        Ok(InMemoryStream::new(self.buffer_size))
+        Ok(InMemoryStream::new(self.buffer_size as i32))
     }
 }
 

@@ -1,7 +1,10 @@
+use std::ops::Range;
+
+use array::Array;
+use rand::Rng;
 use streamz::{
     concrete::InMemoryStreamBuilder,
-    sync_stream::{SyncReadStream, SyncWriteStream},
-    ReadError};
+    sync_stream::{SyncReadStream, SyncWriteStream}};
 
 
 #[test]
@@ -27,7 +30,7 @@ fn test_in_memory_stream_basic() {
     let read_result = stream.read(&mut buffer).unwrap();
     assert_eq!(read_result.read_bytes(), 3);
     assert_eq!(&buffer[0..3], &[1, 2, 3]);
-    assert!(matches!(stream.read(&mut buffer), Err(ReadError::StreamClosed)));
+    assert_eq!(stream.read(&mut [1]).unwrap().read_bytes(), 0);
 }
 
 
@@ -42,7 +45,7 @@ fn test_in_memory_stream_big_read() {
     let read_result = stream.read(&mut read_buffer).unwrap();
     assert_eq!(read_result.read_bytes(), 11);
     assert_eq!(&read_buffer[0..11], &write_buffer);
-    assert!(matches!(stream.read(&mut read_buffer), Err(ReadError::StreamClosed)));
+    assert_eq!(stream.read(&mut [1]).unwrap().read_bytes(), 0);
 }
 
 
@@ -63,7 +66,7 @@ fn test_in_memory_stream_small_buffer() {
     assert_eq!(&read_buffer[0..11], &write_buffer);
     assert_eq!(&read_buffer[11..22], &write_buffer);
     assert_eq!(&read_buffer[22..33], &write_buffer);
-    assert!(matches!(stream.read(&mut read_buffer), Err(ReadError::StreamClosed)));
+    assert_eq!(stream.read(&mut [1]).unwrap().read_bytes(), 0);
 }
 
 
@@ -84,7 +87,7 @@ fn test_in_memory_stream_big_buffer() {
     assert_eq!(&read_buffer[0..11], &write_buffer);
     assert_eq!(&read_buffer[11..22], &write_buffer);
     assert_eq!(&read_buffer[22..33], &write_buffer);
-    assert!(matches!(stream.read(&mut read_buffer), Err(ReadError::StreamClosed)));
+    assert_eq!(stream.read(&mut [1]).unwrap().read_bytes(), 0);
 }
 
 
@@ -110,5 +113,65 @@ fn test_in_memory_stream_big_loop() {
         assert_eq!(&read_buffer[22..33], &write_buffer_3);
     }
 
-    assert!(matches!(stream.read(&mut [0, 1, 2]), Err(ReadError::StreamClosed)));
+    assert_eq!(stream.read(&mut [1]).unwrap().read_bytes(), 0);
+}
+
+
+#[test]
+fn test_randomized() {
+    const LOOP_SIZE: usize = 2000;
+    const STREAM_BUFFER: usize = 100;
+    const ARRAY_LENGTH: Range<usize> = (STREAM_BUFFER - 20)..(STREAM_BUFFER + 20);
+    let mut builder = InMemoryStreamBuilder::default();
+    builder.set_buffer_size(STREAM_BUFFER);
+    let mut stream = builder.build().unwrap();
+
+    fn generate_array(len_range: Range<usize>) -> Array<u8> {
+        let mut rng = rand::thread_rng();
+        let length = rng.gen_range(len_range);
+        Array::new(length)
+    }
+
+    fn generate_array_with_content(len_range: Range<usize>) -> Array<u8> {
+        let mut arr = generate_array(len_range);
+        let mut rng = rand::thread_rng();
+        let slice = arr.as_slice_mut();
+        let length = slice.len();
+        for idx in 0..length {
+            slice[idx] = rng.gen();
+        }
+        arr
+    }
+
+    let mut total_write = Vec::<u8>::with_capacity(LOOP_SIZE * STREAM_BUFFER);
+    let mut total_read = Vec::<u8>::with_capacity(LOOP_SIZE * STREAM_BUFFER);
+
+    for _ in 0..LOOP_SIZE {
+        let write = generate_array_with_content(ARRAY_LENGTH);
+        let write_slice = write.as_slice();
+        let write_len = write_slice.len();
+        stream.write(write_slice).unwrap();
+        total_write.extend_from_slice(write_slice);
+
+        let mut read = generate_array(ARRAY_LENGTH);
+        let read_buffer = read.as_slice_mut();
+        let result = stream.read(read_buffer).unwrap();
+        let read_bytes = result.read_bytes();
+        assert!(read_bytes >= core::cmp::min(read_buffer.len(), write_len));
+
+        total_read.extend_from_slice(&read_buffer[0..read_bytes]);
+    }
+
+    let mut final_read = generate_array(ARRAY_LENGTH);
+    let final_read_slice = final_read.as_slice_mut();
+    loop {
+        let result = stream.read(final_read_slice).unwrap();
+        let read_bytes = result.read_bytes();
+        if read_bytes == 0 {
+            break;
+        }
+        total_read.extend_from_slice(&final_read_slice[0..read_bytes]);
+    }
+
+    assert_eq!(total_write, total_read);
 }
