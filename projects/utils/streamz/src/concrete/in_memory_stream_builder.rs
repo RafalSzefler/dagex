@@ -1,4 +1,4 @@
-use super::{defaults::DEFAULT_BUFFER_SIZE, InMemoryStream};
+use super::{defaults::{DEFAULT_BUFFER_SIZE, MAX_BUFFER_SIZE}, InMemoryStream};
 
 #[derive(Debug)]
 pub enum InMemoryStreamBuildError {
@@ -14,7 +14,7 @@ pub struct InMemoryStreamBuilder {
 }
 
 impl InMemoryStreamBuilder {
-    pub const fn max_buffer_size() -> usize { (i32::MAX - 2048) as usize }
+    pub const fn max_buffer_size() -> usize { MAX_BUFFER_SIZE }
 
     pub const fn min_buffer_size() -> usize { 2 }
 

@@ -1,24 +1,26 @@
+use immutable_string::ImmutableString;
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct GenericError {
-    error_code: i32,
-    message: String,
-    stream_id: String,
+    error_code: Option<i32>,
+    message: ImmutableString,
+    stream_id: ImmutableString,
 }
 
 impl GenericError {
     #[inline(always)]
-    pub fn new(error_code: i32, message: String, stream_id: String) -> Self {
+    pub fn new(error_code: Option<i32>, message: ImmutableString, stream_id: ImmutableString) -> Self {
         Self { error_code, message, stream_id }
     }
 
     #[inline(always)]
-    pub fn error_code(&self) -> i32 { self.error_code }
+    pub fn error_code(&self) -> Option<i32> { self.error_code }
 
     #[inline(always)]
-    pub fn message(&self) -> &String { &self.message }
+    pub fn message(&self) -> &ImmutableString { &self.message }
 
     #[inline(always)]
-    pub fn stream_id(&self) -> &String { &self.message }
+    pub fn stream_id(&self) -> &ImmutableString { &self.stream_id }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
