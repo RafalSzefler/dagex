@@ -181,3 +181,81 @@ fn test_randomized() {
         initial_stream_buffer_size *= 10;
     }
 }
+
+
+#[test]
+fn test_in_memory_stream_iteration() {
+    let mut builder = InMemoryStreamBuilder::default();
+    builder.set_buffer_size(5);
+    let mut stream = builder.build().unwrap();
+
+    let write_buffer_1 = [1, 2, 3, 4];
+    stream.write(&write_buffer_1).unwrap();
+    let write_buffer_2 = [5, 6, 7];
+    stream.write(&write_buffer_2).unwrap();
+
+    let iter_pages = stream.iter_pages();
+    let iter_len = iter_pages.len();
+    assert_eq!(iter_len, 2);
+    let current_data = Vec::from_iter(iter_pages);
+    assert_eq!(current_data.len(), 2);
+    assert_eq!(current_data[0], &[1, 2, 3, 4, 5]);
+    assert_eq!(current_data[1], &[6, 7]);
+
+    stream.read(&mut [0, 0, 0]).unwrap();
+    let iter_pages = stream.iter_pages();
+    let iter_len = iter_pages.len();
+    assert_eq!(iter_len, 2);
+    let current_data = Vec::from_iter(iter_pages);
+    assert_eq!(current_data.len(), 2);
+    assert_eq!(current_data[0], &[4, 5]);
+    assert_eq!(current_data[1], &[6, 7]);
+
+    stream.reset();
+    let iter_pages = stream.iter_pages();
+    let iter_len = iter_pages.len();
+    assert_eq!(iter_len, 0);
+    let current_data = Vec::from_iter(iter_pages);
+    assert_eq!(current_data.len(), 0);
+}
+
+
+#[test]
+fn test_in_memory_stream_iteration_2() {
+    let mut builder = InMemoryStreamBuilder::default();
+    builder.set_buffer_size(5);
+    let mut stream = builder.build().unwrap();
+
+    let write_buffer_1 = [1, 2, 3, 4];
+    stream.write(&write_buffer_1).unwrap();
+    let write_buffer_2 = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    stream.write(&write_buffer_2).unwrap();
+
+    let iter_pages = stream.iter_pages();
+    let iter_len = iter_pages.len();
+    assert_eq!(iter_len, 4);
+    let current_data = Vec::from_iter(iter_pages);
+    assert_eq!(current_data.len(), 4);
+    assert_eq!(current_data[0], &[1, 2, 3, 4, 5]);
+    assert_eq!(current_data[1], &[6, 7, 8, 9, 10]);
+    assert_eq!(current_data[2], &[11, 12, 13, 14, 15]);
+    assert_eq!(current_data[3], &[16]);
+
+    stream.read(&mut [0, 0, 0]).unwrap();
+    let iter_pages = stream.iter_pages();
+    let iter_len = iter_pages.len();
+    assert_eq!(iter_len, 4);
+    let current_data = Vec::from_iter(iter_pages);
+    assert_eq!(current_data.len(), 4);
+    assert_eq!(current_data[0], &[4, 5]);
+    assert_eq!(current_data[1], &[6, 7, 8, 9, 10]);
+    assert_eq!(current_data[2], &[11, 12, 13, 14, 15]);
+    assert_eq!(current_data[3], &[16]);
+
+    stream.reset();
+    let iter_pages = stream.iter_pages();
+    let iter_len = iter_pages.len();
+    assert_eq!(iter_len, 0);
+    let current_data = Vec::from_iter(iter_pages);
+    assert_eq!(current_data.len(), 0);
+}

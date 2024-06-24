@@ -1,4 +1,3 @@
-
 use array::Array;
 use cancellation_token::{CancellationToken, TokenState};
 
@@ -21,7 +20,101 @@ pub struct InMemoryStream {
     end_idx: i32,
 }
 
+pub struct InMemoryStreamIterator<'a> {
+    stream: &'a InMemoryStream,
+    current: i32,
+}
+
+impl<'a> InMemoryStreamIterator<'a> {
+    #[inline(always)]
+    fn new(stream: &'a InMemoryStream) -> Self {
+        let start_page = stream.start_idx / stream.buffer_size;
+        Self { stream: stream, current: start_page }
+    }
+
+    pub fn len(&self) -> usize {
+        let stream = self.stream;
+        let buffer_size = stream.buffer_size;
+        let start_idx = stream.start_idx;
+        let end_idx = stream.end_idx;
+        if end_idx == start_idx {
+            return 0;
+        }
+        let start_page = start_idx / buffer_size;
+        let end_page = end_idx / buffer_size;
+        (end_page - start_page + 1) as usize
+    }
+}
+
+impl<'a> Iterator for InMemoryStreamIterator<'a> {
+    type Item = &'a [u8];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let stream = self.stream;
+        let buffer_size = stream.buffer_size;
+        let start_idx = stream.start_idx;
+        let end_idx = stream.end_idx;
+        let start_page = start_idx / buffer_size;
+        let end_page = end_idx / buffer_size;
+
+        if end_idx == start_idx {
+            return None;
+        }
+
+        let current = self.current;
+        if current > end_page {
+            return None;
+        }
+
+        if current == start_page {
+            let local_start = (start_idx % buffer_size) as usize;
+            let mut end = buffer_size as usize;
+            if current == end_page {
+                let local_end = (end_idx % buffer_size) as usize;
+                end = core::cmp::min(local_end, end);
+            }
+            let view = &stream.pages[current as usize].as_slice()[local_start..end];
+            self.current += 1;
+            return Some(view);
+        }
+        
+        if current == end_page {
+            let local_end = (end_idx % buffer_size) as usize;
+            let view = &stream.pages[current as usize].as_slice()[0..local_end];
+            self.current += 1;
+            return Some(view);
+        }
+
+        self.current += 1;
+        Some(stream.pages[current as usize].as_slice())
+    }
+}
+
 impl InMemoryStream {
+    /// Iterate over pages internally stored by the stream. The total
+    /// content stored is concatenation of those pages in the iterator
+    /// order.
+    /// 
+    /// This function is helpful for efficient peek of internally stored
+    /// data.
+    #[inline(always)]
+    pub fn iter_pages(&self) -> InMemoryStreamIterator<'_> {
+        InMemoryStreamIterator::new(self)
+    }
+
+    /// Resets the stream. Note that this function won't free all internally
+    /// owned memory. The memory will be truncated, but the stream will
+    /// keep few pages for future usage.
+    pub fn reset(&mut self) {
+        let pages_len = self.pages.len();
+        if pages_len > 2 {
+            self.pages.truncate(2);
+            self.pages.shrink_to_fit();
+        }
+        self.start_idx = 0;
+        self.end_idx = 0;
+    }
+
     pub(super) fn new(buffer_size: i32) -> Self {
         Self {
             pages: Vec::default(),
@@ -30,9 +123,7 @@ impl InMemoryStream {
             end_idx: 0,
         }
     }
-}
 
-impl InMemoryStream {
     fn get_page_for_idx_mut<T: Conv<usize>>(&mut self, idx: &T) -> &mut Array<u8> {
         let buffer_size = self.buffer_size.convert();
         let page_idx = idx.convert() / buffer_size;
@@ -42,6 +133,13 @@ impl InMemoryStream {
         &mut self.pages[page_idx]
     }
 
+    /// This function does the following things in order:
+    /// * If start_idx is beyond first page, then all those initial pages
+    /// are moved to the back of the vector.
+    /// * If at the end we have more than 2 empty pages, then they will
+    /// be removed and we will free the memory.
+    /// * If entire content lives inside the first page, then it will moved
+    /// so that start_idx becomes 0.
     #[allow(
         clippy::cast_possible_truncation,
         clippy::cast_possible_wrap,
