@@ -2,7 +2,7 @@ use std::{fs::File, io::Write};
 
 use rand::Rng;
 
-use streamz::{concrete::FileStreamBuilder, sync_stream::{SyncReadStream, SyncWriteStream}};
+use streamz::{concrete::FileStreamBuilder, sync_stream::{SyncFlushStream, SyncReadStream, SyncWriteStream}};
 
 
 fn create_tmp_file(content_size: usize) -> (File, RemovablePath) {

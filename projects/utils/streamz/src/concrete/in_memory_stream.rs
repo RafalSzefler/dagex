@@ -3,7 +3,7 @@ use cancellation_token::{CancellationToken, TokenState};
 
 use crate::{
     conv::Conv,
-    sync_stream::{SyncReadStream, SyncWriteStream},
+    sync_stream::{SyncFlushStream, SyncReadStream, SyncWriteStream},
     FlushError,
     FlushResult,
     ReadError,
@@ -291,7 +291,9 @@ impl SyncWriteStream for InMemoryStream {
 
         return Ok(WriteResult::new());
     }
-    
+}
+
+impl SyncFlushStream for InMemoryStream {
     fn flush_with_cancellation(&mut self, _ct: &mut CancellationToken)
         -> Result<FlushResult, FlushError>
     {

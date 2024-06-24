@@ -4,7 +4,7 @@ use cancellation_token::{CancellationToken, TokenState};
 use immutable_string::ImmutableString;
 
 use crate::{
-    errors::GenericError, sync_stream::{SyncReadStream, SyncWriteStream}, FlushError, FlushResult, ReadError, ReadResult, WriteError, WriteResult};
+    errors::GenericError, sync_stream::{SyncFlushStream, SyncReadStream, SyncWriteStream}, FlushError, FlushResult, ReadError, ReadResult, WriteError, WriteResult};
 
 use super::defaults::{DEFAULT_BUFFER_SIZE, MAX_BUFFER_SIZE};
 
@@ -131,7 +131,9 @@ impl SyncWriteStream for FileStream {
 
         Ok(WriteResult::new())
     }
+}
 
+impl SyncFlushStream for FileStream {
     fn flush_with_cancellation(&mut self, _ct: &mut CancellationToken)
         -> Result<FlushResult, FlushError>
     {

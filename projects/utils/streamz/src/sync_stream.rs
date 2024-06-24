@@ -25,6 +25,28 @@ pub trait SyncReadStream {
     }
 }
 
+pub trait SyncReadExactStream : SyncReadStream {
+    /// Reads data into buffer. Reads exactly as many items as specified by
+    /// buffer. [`ReadResult`] contains number of bytes read.
+    /// 
+    /// # Errors
+    /// For the description of errors see [`ReadError`] docs.
+    fn read_exact_with_cancellation(&mut self, buffer: &mut [u8], ct: &mut CancellationToken)
+        -> Result<ReadResult, ReadError>;
+    
+    /// Reads data into buffer. Reads exactly as many items as specified by
+    /// buffer. [`ReadResult`] contains number of bytes read.
+    /// Unlike [`SyncReadStream::read_exact_with_cancellation`] this operation
+    /// cannot be cancelled.
+    /// 
+    /// # Errors
+    /// For the description of errors see [`ReadError`] docs.
+    fn read_exact(&mut self, buffer: &mut [u8]) -> Result<ReadResult, ReadError> {
+        let mut ct = CancellationToken::default();
+        self.read_exact_with_cancellation(buffer, &mut ct)
+    }
+}
+
 pub trait SyncWriteStream {
     /// Returns maximum buffer size for write operations.
     fn max_write_size() -> usize;
@@ -35,14 +57,7 @@ pub trait SyncWriteStream {
     /// For the description of errors see [`WriteError`] docs.
     fn write_with_cancellation(&mut self, buffer: &[u8], ct: &mut CancellationToken)
         -> Result<WriteResult, WriteError>;
-    
-    /// Flushes straem. On success returns [`FlushResult`].
-    /// 
-    /// # Errors
-    /// For the description of errors see [`FlushError`] docs.
-    fn flush_with_cancellation(&mut self, ct: &mut CancellationToken)
-        -> Result<FlushResult, FlushError>;
-    
+       
     /// Writes entire buffer into stream. On success returns [`WriteResult`].
     /// Unlike [`SyncWriteStream::write_with_cancellation`] cannot be cancelled.
     /// 
@@ -52,8 +67,17 @@ pub trait SyncWriteStream {
         let mut ct = CancellationToken::default();
         self.write_with_cancellation(buffer, &mut ct)
     }
+}
 
-    /// Flushes straem. On success returns [`FlushResult`]. Unlike
+pub trait SyncFlushStream : SyncWriteStream {
+    /// Flushes straem. On success returns [`FlushResult`].
+    /// 
+    /// # Errors
+    /// For the description of errors see [`FlushError`] docs.
+    fn flush_with_cancellation(&mut self, ct: &mut CancellationToken)
+        -> Result<FlushResult, FlushError>;
+
+    /// Flushes stream. On success returns [`FlushResult`]. Unlike
     /// [`SyncWriteStream::flush_with_cancellation`] cannot be cancelled.
     /// 
     /// # Errors
@@ -64,6 +88,6 @@ pub trait SyncWriteStream {
     }
 }
 
-pub trait SyncStream: SyncReadStream + SyncWriteStream { }
+pub trait SyncStream: SyncReadExactStream + SyncFlushStream { }
 
-impl<T: SyncReadStream + SyncWriteStream> SyncStream for T { }
+impl<T: SyncReadExactStream + SyncFlushStream> SyncStream for T { }
