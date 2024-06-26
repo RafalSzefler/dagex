@@ -2,7 +2,7 @@
 /// 
 /// # Notes
 /// Immutable once created.
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Default)]
 pub struct ArrowDTO {
     source: i32,
     target: i32,
@@ -15,12 +15,12 @@ impl ArrowDTO {
     }
 
     #[inline(always)]
-    pub fn get_source(&self) -> i32 {
+    pub fn source(&self) -> i32 {
         self.source
     }
 
     #[inline(always)]
-    pub fn get_target(&self) -> i32 {
+    pub fn target(&self) -> i32 {
         self.target
     }
 }
@@ -30,7 +30,7 @@ impl ArrowDTO {
 /// 
 /// # Notes
 /// Immutable once created.
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Default)]
 pub struct DirectedGraphDTO {
     number_of_nodes: i32,
     arrows: Vec<ArrowDTO>,
@@ -43,12 +43,12 @@ impl DirectedGraphDTO {
     }
 
     #[inline(always)]
-    pub fn get_number_of_nodes(&self) -> i32 {
+    pub fn number_of_nodes(&self) -> i32 {
         self.number_of_nodes
     }
 
     #[inline(always)]
-    pub fn get_arrows(&self) -> &Vec<ArrowDTO> {
+    pub fn arrows(&self) -> &Vec<ArrowDTO> {
         &self.arrows
     }
 }

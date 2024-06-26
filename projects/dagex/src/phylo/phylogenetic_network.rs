@@ -134,10 +134,10 @@ impl PhylogeneticNetwork {
     }
 
     pub fn from_dto(dto: &PhylogeneticNetworkDTO) -> PhylogeneticNetworkFromResult {
-        match DirectedGraph::from_dto(dto.get_graph()) {
+        match DirectedGraph::from_dto(dto.graph()) {
             DirectedGraphFromResult::Ok(graph) => {
                 let taxa: HashMap<Node, Taxon>
-                    = dto.get_taxa()
+                    = dto.taxa()
                         .iter()
                         .map(|kvp| (Node::from(*kvp.0), Taxon::from(kvp.1.clone())))
                         .collect();

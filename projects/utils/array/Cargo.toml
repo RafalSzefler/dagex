@@ -1,8 +1,9 @@
 [package]
-name = "streamz"
+name = "array"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+ctor = { workspace = true }

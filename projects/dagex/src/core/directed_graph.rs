@@ -180,7 +180,7 @@ impl DirectedGraph {
     pub fn from_dto(value: &DirectedGraphDTO)
         -> DirectedGraphFromResult
     {
-        let number_of_nodes = value.get_number_of_nodes();
+        let number_of_nodes = value.number_of_nodes();
         if number_of_nodes <= 0 {
             return DirectedGraphFromResult::EmptyGraph;
         }
@@ -205,7 +205,7 @@ impl DirectedGraph {
         let mut multiple_roots = false;
         let mut leaves = Vec::<Node>::with_capacity(8);
 
-        let arrows = value.get_arrows();
+        let arrows = value.arrows();
         let mut multi_arrows = HashSet::<ArrowDTO>::with_capacity(arrows.len());
 
         for arrow in arrows {
@@ -213,8 +213,8 @@ impl DirectedGraph {
                 return DirectedGraphFromResult::MultipleParallelArrows(arrow.clone());
             }
             multi_arrows.insert(arrow.clone());
-            let source = arrow.get_source();
-            let target = arrow.get_target();
+            let source = arrow.source();
+            let target = arrow.target();
             if source < 0
                 || source >= number_of_nodes
                 || target < 0

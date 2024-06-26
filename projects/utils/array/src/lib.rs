@@ -7,3 +7,6 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
+mod array;
+
+pub use array::Array;
