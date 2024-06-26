@@ -6,8 +6,6 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-paste = "1.0.15"
-itertools = { workspace = true }
 array = { path = "../utils/array" }
 immutable_string = { path = "../utils/immutable_string" }
 dagex = { path = "../dagex" }

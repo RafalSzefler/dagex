@@ -1,8 +1,6 @@
 use std::
     io::{Error, Read};
 
-use crate::WithTypeInfo;
-
 pub struct OwnedReadResult<T> {
     pub item: T,
     pub read_bytes: usize,
@@ -39,7 +37,18 @@ impl From<Error> for ReadError {
     }
 }
 
-pub trait Deserializer<TRead: Read> {
+pub trait Deserializable<T> : Sized {
+    /// Deserializes Self from underlying stream.
+    /// 
+    /// # Errors
+    /// * [`ReadError::InvalidContent`] when underlying stream cannot be 
+    /// deserialized into valid object. Contains message with concrete error.
+    /// * [`ReadError::IoError`] when reading from internal stream fails.
+    fn deserialize(deserializer: &mut T)
+        -> Result<ReadResult<Self>, ReadError>;
+}
+
+pub trait Deserializer<TRead: Read> : Sized {
     fn from_stream(stream: TRead) -> Self;
 
     fn release(self) -> TRead;
@@ -51,5 +60,8 @@ pub trait Deserializer<TRead: Read> {
     /// deserialized into valid object. Contains message with concrete error.
     /// * [`ReadError::IoError`] when reading from internal stream fails.
     fn read<T>(&mut self) -> Result<ReadResult<T>, ReadError>
-        where T: WithTypeInfo;
+        where T: Deserializable<Self>
+    {
+        T::deserialize(self)
+    }
 }
