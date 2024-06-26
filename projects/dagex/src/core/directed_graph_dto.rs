@@ -15,12 +15,12 @@ impl ArrowDTO {
     }
 
     #[inline(always)]
-    pub fn get_source(&self) -> i32 {
+    pub fn source(&self) -> i32 {
         self.source
     }
 
     #[inline(always)]
-    pub fn get_target(&self) -> i32 {
+    pub fn target(&self) -> i32 {
         self.target
     }
 }
@@ -43,12 +43,12 @@ impl DirectedGraphDTO {
     }
 
     #[inline(always)]
-    pub fn get_number_of_nodes(&self) -> i32 {
+    pub fn number_of_nodes(&self) -> i32 {
         self.number_of_nodes
     }
 
     #[inline(always)]
-    pub fn get_arrows(&self) -> &Vec<ArrowDTO> {
+    pub fn arrows(&self) -> &Vec<ArrowDTO> {
         &self.arrows
     }
 }

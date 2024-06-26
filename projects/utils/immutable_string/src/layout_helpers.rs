@@ -37,7 +37,7 @@ pub(crate) const fn extend_layout_for_type<T>(base_layout: &Layout)
         Ok(layout) => {
             let (new_layout, offset) 
                 = _extend_layout(base_layout, &layout);
-            assert!(offset <= i8::max_value() as usize, "Offset doesn't fit in i8");
+            assert!(offset <= i8::MAX as usize, "Offset doesn't fit in i8");
             return (new_layout, offset);
         }
         Err(_) => {

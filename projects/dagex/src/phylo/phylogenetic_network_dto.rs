@@ -16,12 +16,12 @@ impl PhylogeneticNetworkDTO {
     }
 
     #[inline(always)]
-    pub fn get_graph(&self) -> &DirectedGraphDTO {
+    pub fn graph(&self) -> &DirectedGraphDTO {
         &self.graph
     }
 
     #[inline(always)]
-    pub fn get_taxa(&self) -> &HashMap<i32, ImmutableString> {
+    pub fn taxa(&self) -> &HashMap<i32, ImmutableString> {
         &self.taxa
     }
 }
