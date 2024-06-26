@@ -91,6 +91,7 @@ pub(super) fn serialize_dg<TWrite: Write>(stream: &mut TWrite, value: &DirectedG
     -> Result<usize, WriteError>
 {
     let mut total = serialize_i32(stream, value.number_of_nodes())?;
+    total += serialize_usize(stream, value.arrows().len())?;
     for arr in value.arrows() {
         total += serialize_arrow(stream, arr)?;
     }
@@ -135,6 +136,7 @@ pub(super) fn serialize_pn<TWrite: Write>(stream: &mut TWrite, value: &Phylogene
 {
     let dg = value.graph();
     let mut total = serialize_i32(stream, dg.number_of_nodes())?;
+    total += serialize_usize(stream, dg.arrows().len())?;
     for arr in dg.arrows() {
         total += serialize_arrow(stream, arr)?;
     }

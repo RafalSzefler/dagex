@@ -171,6 +171,10 @@ impl ImmutableString {
     }
 }
 
+impl Default for ImmutableString {
+    fn default() -> Self { Self::empty().clone() }
+}
+
 impl Clone for ImmutableString {
     /// This method doesn't actually clone the string, but it
     /// increments the internal reference counter instead. This operation

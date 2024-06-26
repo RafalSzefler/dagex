@@ -80,7 +80,7 @@ fn test_arrow_serialization(#[case] source: i32, #[case] target: i32, #[case] ex
 }
 
 
-const DG_PN_SHARED: &[u8] = &[0b00001101, 0b00000001, 0b00000101, 0b00000001, 0b00001001, 0b00000001];
+const DG_PN_SHARED: &[u8] = &[0b00001101, 0b00000101, 0b00000001, 0b00000101, 0b00000001, 0b00001001, 0b00000001];
 
 #[test]
 fn test_dg_serialization() {
@@ -88,8 +88,9 @@ fn test_dg_serialization() {
     let dg = DirectedGraphDTO::new(3, arrows);
     let mut serializer = BinarySerializer::from_stream(Vec::new());
     let result = serializer.write(&dg).unwrap();
-    assert_eq!(result.written_bytes(), DG_PN_SHARED.len());
+    let written_bytes = result.written_bytes();
     let data = serializer.release();
+    assert_eq!(written_bytes, DG_PN_SHARED.len());
     assert_eq!(data, DG_PN_SHARED);
 }
 
@@ -101,8 +102,9 @@ fn test_pn_serialization_1() {
     let pn = PhylogeneticNetworkDTO::new(dg, HashMap::new());
     let mut serializer = BinarySerializer::from_stream(Vec::new());
     let result = serializer.write(&pn).unwrap();
-    assert_eq!(result.written_bytes(), DG_PN_SHARED.len());
+    let written_bytes = result.written_bytes();
     let data = serializer.release();
+    assert_eq!(written_bytes, DG_PN_SHARED.len());
     assert_eq!(data, DG_PN_SHARED);
 }
 
@@ -110,6 +112,11 @@ fn test_pn_serialization_1() {
 fn test_pn_serialization_2() {
     // The purpose of loop is to ensure that result doesn't depend on the
     // order of iteration of HashMap.
+    let expected = &[
+        0b00001101, 0b00000101, 0b00000001, 0b00000101, 0b00000001,
+        0b00001001, 0b00000101, 0b00000101, 0b00000011, 0b01000001,
+        0b00001001, 0b00000011, 0b01000010];
+
     for _ in 0..100 {
         let arrows = vec![ArrowDTO::new(0, 1), ArrowDTO::new(0, 2)];
         let dg = DirectedGraphDTO::new(3, arrows);
@@ -119,12 +126,12 @@ fn test_pn_serialization_2() {
         let pn = PhylogeneticNetworkDTO::new(dg, taxa);
         let mut serializer = BinarySerializer::from_stream(Vec::new());
         let result = serializer.write(&pn).unwrap();
-        let expected = &[
-            0b00001101, 0b00000001, 0b00000101, 0b00000001, 0b00001001,
-            0b00000101, 0b00000101, 0b00000011, 0b01000001, 0b00001001,
-            0b00000011, 0b01000010];
-        assert_eq!(result.written_bytes(), expected.len());
+        let written_bytes = result.written_bytes();
         let data = serializer.release();
+        if data != expected {
+            println!("{}", format_data(&data))
+        }
+        assert_eq!(written_bytes, expected.len());
         assert_eq!(data, expected);
     }
 }

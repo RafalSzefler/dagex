@@ -3,21 +3,28 @@ use std::
 
 use crate::WithTypeInfo;
 
+pub struct OwnedReadResult<T> {
+    pub item: T,
+    pub read_bytes: usize,
+}
+
 pub struct ReadResult<T> {
-    item: T,
-    read_bytes: usize,
+    owned: OwnedReadResult<T>,
 }
 
 impl<T> ReadResult<T> {
     pub fn new(item: T, read_bytes: usize) -> Self {
-        Self { item, read_bytes }
+        Self { owned: OwnedReadResult { item, read_bytes } }
     }
 
     #[inline(always)]
-    pub fn read_bytes(&self) -> usize { self.read_bytes }
+    pub fn read_bytes(&self) -> usize { self.owned.read_bytes }
 
     #[inline(always)]
-    pub fn release(self) -> T { self.item }
+    pub fn item(&self) -> &T { &self.owned.item }
+
+    #[inline(always)]
+    pub fn release(self) -> OwnedReadResult<T> { self.owned }
 }
 
 #[derive(Debug)]

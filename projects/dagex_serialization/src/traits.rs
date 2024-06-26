@@ -14,7 +14,7 @@ pub enum TypeInfo {
     PhylogeneticNetworkDTO,
 }
 
-pub trait WithTypeInfo {
+pub trait WithTypeInfo : Sized {
     fn type_info() -> TypeInfo;
 }
 

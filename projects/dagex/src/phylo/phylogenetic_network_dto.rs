@@ -4,6 +4,7 @@ use immutable_string::ImmutableString;
 
 use crate::core::DirectedGraphDTO;
 
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct PhylogeneticNetworkDTO {
     graph: DirectedGraphDTO,
     taxa: HashMap<i32, ImmutableString>,

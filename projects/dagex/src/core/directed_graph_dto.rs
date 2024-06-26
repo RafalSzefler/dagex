@@ -2,7 +2,7 @@
 /// 
 /// # Notes
 /// Immutable once created.
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Default)]
 pub struct ArrowDTO {
     source: i32,
     target: i32,
@@ -30,7 +30,7 @@ impl ArrowDTO {
 /// 
 /// # Notes
 /// Immutable once created.
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Default)]
 pub struct DirectedGraphDTO {
     number_of_nodes: i32,
     arrows: Vec<ArrowDTO>,
