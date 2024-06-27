@@ -15,7 +15,7 @@ use dagex::{
 };
 use immutable_string::ImmutableString;
 
-fn imm(text: &str) -> ImmutableString { ImmutableString::get(text).unwrap() }
+fn imm(text: &str) -> ImmutableString { ImmutableString::new(text).unwrap() }
 
 fn dg_dto_empty() -> DirectedGraphDTO { DirectedGraphDTO::new(0, Vec::new()) }
 

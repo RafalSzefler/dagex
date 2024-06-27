@@ -84,7 +84,7 @@ impl ImmutableString {
     /// 
     /// * [`ConstructionError::AllocationError`] if is not able
     /// to allocate memory for new `ImmutableString`.
-    pub fn get(text: &str) -> Result<Self, ConstructionError> {
+    pub fn new(text: &str) -> Result<Self, ConstructionError> {
         if text.is_empty() {
             return Ok(Self::empty().clone());
         }
@@ -255,6 +255,9 @@ impl Debug for ImmutableString {
 mod tests {
     use std::{sync::{Mutex, MutexGuard, OnceLock}, time::Duration};
 
+    #[cfg(feature="serde")]
+    use rstest::rstest;
+
     use super::*;
 
     impl UpgradeResult {
@@ -294,10 +297,10 @@ mod tests {
         let second_str = second.as_str();
         assert!(!std::ptr::eq(first_str, second_str));
         assert_eq!(get_cache_size(), 0);
-        let string1 = ImmutableString::get(first_str)
+        let string1 = ImmutableString::new(first_str)
             .unwrap();
         assert_eq!(get_cache_size(), 1);
-        let string2 = ImmutableString::get(second_str)
+        let string2 = ImmutableString::new(second_str)
             .unwrap();
         assert_eq!(get_cache_size(), 1);
 
@@ -329,7 +332,7 @@ mod tests {
         {
             // Empty string is special - it is not stored inside cache, but
             // rather statically kept for the lifetime of app.
-            let imm = ImmutableString::get("").unwrap();
+            let imm = ImmutableString::new("").unwrap();
             assert_eq!(imm.content.get_buffer_size(), PREFIX_SIZE);
             assert_eq!(get_cache_size(), 0);
             let info = imm.get_info();
@@ -360,7 +363,7 @@ mod tests {
             let text_len = case.len() as i32;
             let pad = (((text_len - 1) / ALIGNMENT) + 1) * ALIGNMENT;
             let expected_size = PREFIX_SIZE + pad;
-            let imm = ImmutableString::get(case)
+            let imm = ImmutableString::new(case)
                 .unwrap();
             assert_eq!(imm.content.get_buffer_size(), expected_size);
             let info = imm.get_info();
@@ -405,14 +408,14 @@ mod tests {
         const THRAED_COUNT: usize = 100;
 
         let _guard = test_lock();
-        let imm = ImmutableString::get("foo").unwrap();
+        let imm = ImmutableString::new("foo").unwrap();
 
         let mut threads 
             = Vec::<std::thread::JoinHandle<()>>::with_capacity(THRAED_COUNT);
         for _ in 0..THRAED_COUNT {
             threads.push(std::thread::spawn(|| {
                 let copy 
-                    = ImmutableString::get("foo").unwrap();
+                    = ImmutableString::new("foo").unwrap();
                 std::thread::sleep(Duration::from_millis(50));
                 drop(copy);
             }));
@@ -433,7 +436,7 @@ mod tests {
         const THRAED_COUNT: usize = 100;
 
         let _guard = test_lock();
-        let imm = ImmutableString::get("foo").unwrap();
+        let imm = ImmutableString::new("foo").unwrap();
 
         let mut threads 
             = Vec::<std::thread::JoinHandle<()>>::with_capacity(THRAED_COUNT);
@@ -459,7 +462,7 @@ mod tests {
         const THRAED_COUNT: usize = 100;
 
         let _guard = test_lock();
-        let imm = ImmutableString::get("foo").unwrap();
+        let imm = ImmutableString::new("foo").unwrap();
 
         let mut threads 
             = Vec::<std::thread::JoinHandle<()>>::with_capacity(THRAED_COUNT);
@@ -471,7 +474,7 @@ mod tests {
             }));
             threads.push(std::thread::spawn(|| {
                 let copy 
-                    = ImmutableString::get("foo").unwrap();
+                    = ImmutableString::new("foo").unwrap();
                 std::thread::sleep(Duration::from_millis(50));
                 drop(copy);
             }));
@@ -484,5 +487,18 @@ mod tests {
             th.join().unwrap();
         }
         assert_eq!(get_cache_size(), 0);
+    }
+
+    #[cfg(feature="serde")]
+    #[rstest]
+    #[case("", "\"\"")]
+    #[case("ABC", "\"ABC\"")]
+    #[case("A BC  ", "\"A BC  \"")]
+    #[case("\n\t", "\"\\n\\t\"")]
+    fn test_serial(#[case] text: &str, #[case] expected: &str) {
+        let _guard = test_lock();
+        let imm = ImmutableString::new(text).unwrap();
+        let result = serde_json::to_string(&imm).unwrap();
+        assert_eq!(result, expected);
     }
 }

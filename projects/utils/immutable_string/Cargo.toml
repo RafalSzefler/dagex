@@ -6,12 +6,16 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-ctor = { workspace = true, optional = true }
 fnv1a_hasher = { path = "../fnv1a_hasher" }
+ctor = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
 
 [dev-dependencies]
-rand.workspace = true
+rstest = { workspace = true }
+rand = { workspace = true }
+serde_json = { workspace = true }
 
 [features]
-default = ["ctor"]
+default = ["ctor", "serde"]
 ctor = ["dep:ctor"]
+serde = ["dep:serde"]

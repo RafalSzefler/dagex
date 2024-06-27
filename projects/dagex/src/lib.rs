@@ -7,7 +7,6 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-
 mod hashing;
 mod global_id;
 
@@ -16,3 +15,6 @@ pub(crate) use hashing::create_u32_hasher;
 
 pub mod core;
 pub mod phylo;
+
+#[cfg(feature="serde")]
+mod impl_serde;

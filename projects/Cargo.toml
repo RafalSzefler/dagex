@@ -6,7 +6,6 @@ members = [
     "utils/fnv1a_hasher",
     "utils/immutable_string",
     "dagex",
-    "dagex_serialization",
     "dagex_algorithms",
 ]
 resolver = "2"
@@ -24,3 +23,5 @@ ctor = "0.2.8"
 smallvec = "1.13.2"
 fasthash = "0.4"
 rstest = "0.21.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

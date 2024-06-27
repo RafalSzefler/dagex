@@ -16,7 +16,7 @@ fn build_network(arrows: &[(i32, i32)], taxa: &[(i32, &'static str)]) -> Phyloge
     let graph_dto = DirectedGraphDTO::new(max+1, Vec::from_iter(target_arrows));
     let mapped_taxa: HashMap<i32, ImmutableString>
         = taxa.iter()
-            .map(|kvp| (kvp.0, ImmutableString::get(kvp.1).unwrap()))
+            .map(|kvp| (kvp.0, ImmutableString::new(kvp.1).unwrap()))
             .collect();
     let network_dto = PhylogeneticNetworkDTO::new(
         graph_dto,

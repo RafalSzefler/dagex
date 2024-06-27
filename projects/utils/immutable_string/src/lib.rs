@@ -16,5 +16,8 @@ mod layout_helpers;
 mod immutable_string;
 mod weak_immutable_string;
 
+#[cfg(feature="serde")]
+mod impl_serde;
+
 pub use construction_error::ConstructionError;
 pub use immutable_string::ImmutableString;
