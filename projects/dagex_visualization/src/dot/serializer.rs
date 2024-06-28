@@ -3,7 +3,20 @@ use std::{collections::{HashMap, HashSet}, hash::{Hash, Hasher}, io::{Error, Wri
 
 use dagex::core::DirectedGraphDTO;
 
-use super::traits::{DotSerializable, DotSerializer};
+use super::{
+    graph_model_serializer::DotLangSerializer,
+    models::{
+        EdgeOp,
+        EdgeRHS,
+        EdgeStatement,
+        EdgeStatementItem,
+        Graph,
+        Id,
+        NodeId,
+        NodeStatement,
+        Statement,
+        Subgraph},
+    traits::{DotSerializable, DotSerializer}};
 
 pub struct DefaultDotSerializer<TWrite: Write> {
     stream: TWrite,
@@ -23,7 +36,6 @@ impl<TWrite> DotSerializable<TWrite, DefaultDotSerializer<TWrite>> for DirectedG
     where TWrite: Write
 {
     fn serialize(&self, ser: &mut DefaultDotSerializer<TWrite>) -> Result<usize, Error> {
-        let s = &mut ser.stream;
         let graph = self;
 
         let hash = {
@@ -32,15 +44,7 @@ impl<TWrite> DotSerializable<TWrite, DefaultDotSerializer<TWrite>> for DirectedG
             hasher.finish()
         };
 
-        let mut total = 2;
-        let mut write_it = |text: &String| -> Result<(), _> {
-            let msg_buf = text.as_bytes();
-            total += msg_buf.len();
-            s.write_all(msg_buf)
-        };
-
-        write_it(&format!("digraph dagex_{hash} {{\n"))?;
-        
+        let mut stmts = Vec::new();        
 
         let no = graph.number_of_nodes();
         let mut arrows_map = HashMap::<i32, Vec<i32>>
@@ -60,25 +64,36 @@ impl<TWrite> DotSerializable<TWrite, DefaultDotSerializer<TWrite>> for DirectedG
         }
 
         for idx in 0..no {
+            let source_id = NodeId::new(Id::new(idx.to_string().as_str()), None);
             match arrows_map.get(&idx) {
                 Some(targets) => {
-                    let targets_str = targets
-                        .iter()
-                        .map(std::string::ToString::to_string)
-                        .collect::<Vec<_>>()
-                        .join(" ");
-                    write_it(&format!("    {idx} -> {{ {targets_str} }};\n"))?;
+                    let source = EdgeStatementItem::Node(source_id);
+                    let mut subgraph_stmts = Vec::with_capacity(targets.len());
+                    for target in targets {
+                        let target_id = NodeId::new(Id::new(target.to_string().as_str()), None);
+                        let node_stmt = NodeStatement::new(target_id, Vec::new());
+                        subgraph_stmts.push(Statement::Node(node_stmt));
+                    }
+                    let subgraph = Subgraph::new(None, subgraph_stmts);
+                    let item = EdgeStatementItem::Subgraph(subgraph);
+                    let rhs = EdgeRHS::new(EdgeOp::Directed, item, None);
+                    let stmt = EdgeStatement::new(source, rhs);
+                    stmts.push(Statement::Edge(stmt));
                 },
                 None => {
                     if !seen.contains(&idx) {
-                        write_it(&format!("    {idx};\n"))?;
+                        stmts.push(Statement::Node(
+                            NodeStatement::new(source_id, Vec::new())));
                     }
                 },
             }
         }
 
-        s.write_all(b"}\n")?;
-
-        Ok(total)
+        let id = Id::new(format!("dagex_{hash}").as_str());
+        let graph = Graph::new(Some(id), true, true, stmts);
+        let serializer = DotLangSerializer::new(&graph);
+        let result = serializer.serialize();
+        ser.stream.write_all(result.as_bytes())?;
+        Ok(result.len())
     }
 }
