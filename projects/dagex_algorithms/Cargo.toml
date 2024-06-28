@@ -7,3 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 dagex = { path = "../dagex" }
+array = { path = "../utils/array" }
+
+[dev-dependencies]
+rstest = { workspace = true }

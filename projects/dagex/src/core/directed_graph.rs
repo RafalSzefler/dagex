@@ -104,7 +104,7 @@ impl DirectedGraph {
     pub fn is_leaf(&self, node: Node) -> bool {
         self.get_successors(node).is_empty()
     }
-
+    
     pub fn into_dto(&self) -> DirectedGraphDTO {
         let max_arrows = core::cmp::max(
             self.successors_map.len(),

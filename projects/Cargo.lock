@@ -63,7 +63,9 @@ dependencies = [
 name = "dagex_algorithms"
 version = "0.0.4"
 dependencies = [
+ "array",
  "dagex",
+ "rstest",
 ]
 
 [[package]]
