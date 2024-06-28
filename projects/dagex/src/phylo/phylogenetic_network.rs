@@ -12,9 +12,6 @@ use super::{PhylogeneticNetworkDTO, PhylogeneticNetworkId, Taxon};
 pub struct PhylogeneticNetwork {
     graph: DirectedGraph,
     taxa: HashMap<Node, Taxon>,
-    tree_nodes: HashSet<Node>,
-    reticulation_nodes: HashSet<Node>,
-    cross_nodes: HashSet<Node>,
     id: PhylogeneticNetworkId,
     hash_value: u32,
 }
@@ -101,28 +98,7 @@ impl PhylogeneticNetwork {
             }
         }
 
-        let mut tree_nodes = HashSet::new();
-        let mut reticulation_nodes = HashSet::new();
-        let mut cross_nodes = HashSet::new();
-
-        for node in graph.iter_nodes() {
-            if graph.get_successors(node).is_empty() {
-                continue;
-            }
-
-            if graph.get_predecessors(node).len() <= 1 {
-                tree_nodes.insert(node);
-            }
-            else if graph.get_successors(node).len() == 1 {
-                reticulation_nodes.insert(node);
-            }
-            else
-            {
-                cross_nodes.insert(node);
-            }
-        }
-
-        Self { graph, taxa, tree_nodes, reticulation_nodes, cross_nodes, id, hash_value }
+        Self { graph, taxa, id, hash_value }
     }
 
     /// Safely constructs [`PhylogeneticNetwork`] directly and
@@ -208,32 +184,36 @@ impl PhylogeneticNetwork {
         self.graph.root().unwrap()
     }
 
-    /// Returns tree nodes of the [`PhylogeneticNetwork`]. Tree node is a
-    /// node of in-degree at most 1. And so it is a node with single incoming
-    /// arrow or a root.
-    #[inline(always)]
-    pub fn tree_nodes(&self) -> &HashSet<Node> {
-        &self.tree_nodes
+    /// Tree node is a node of in-degree at most 1, but is not a leaf.
+    pub fn is_tree_node(&self, node: Node) -> bool {
+        let graph = self.graph();
+        if graph.leaves().contains(&node) {
+            false
+        }
+        else
+        {
+            graph.get_predecessors(node).len() <= 1
+        }
     }
 
-    /// Returns reticulation nodes of the [`PhylogeneticNetwork`]. Reticulation
-    /// node is a node of in-degree 2 and out-degree 1. And so it is a node
-    /// with two incoming arrows and one outgoing.
+    /// Reticulation node is a node of in-degree 2 and out-degree 1.
     #[inline(always)]
-    pub fn reticulation_nodes(&self) -> &HashSet<Node> {
-        &self.reticulation_nodes
+    pub fn is_reticulation_node(&self, node: Node) -> bool {
+        let graph = self.graph();
+        (graph.get_predecessors(node).len() == 2) && (graph.get_successors(node).len() == 1)
     }
 
-    /// Returns cross nodes of the [`PhylogeneticNetwork`]. Cross
-    /// node is a node of in-degree 2 and out-degree 2.
+    /// Cross node is a node of in-degree 2 and out-degree 2.
     #[inline(always)]
-    pub fn cross_nodes(&self) -> &HashSet<Node> {
-        &self.cross_nodes
+    pub fn is_cross_node(&self, node: Node) -> bool {
+        let graph = self.graph();
+        (graph.get_predecessors(node).len() == 2) && (graph.get_successors(node).len() == 2)
     }
 
+    /// Leaf is a node of out-degree 0.
     #[inline(always)]
-    pub fn leaves(&self) -> &HashSet<Node> {
-        self.graph.leaves()
+    pub fn is_leaf(&self, node: Node) -> bool {
+        self.graph.is_leaf(node)
     }
 }
 

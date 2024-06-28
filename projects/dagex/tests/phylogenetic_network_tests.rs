@@ -31,6 +31,22 @@ fn dg_dto(arrows: &[(i32, i32)]) -> DirectedGraphDTO {
     DirectedGraphDTO::new(max+1, Vec::from_iter(target_arrows))
 }
 
+fn tree_nodes(pn: &PhylogeneticNetwork) -> HashSet<Node> {
+    pn.graph().iter_nodes().filter(|n| pn.is_tree_node(*n)).collect()
+}
+
+fn reticulation_nodes(pn: &PhylogeneticNetwork) -> HashSet<Node> {
+    pn.graph().iter_nodes().filter(|n| pn.is_reticulation_node(*n)).collect()
+}
+
+fn cross_nodes(pn: &PhylogeneticNetwork) -> HashSet<Node> {
+    pn.graph().iter_nodes().filter(|n| pn.is_cross_node(*n)).collect()
+}
+
+fn leaves(pn: &PhylogeneticNetwork) -> HashSet<Node> {
+    pn.graph().iter_nodes().filter(|n| pn.is_leaf(*n)).collect()
+}
+
 #[test]
 fn test_empty() {
     let dto = PhylogeneticNetworkDTO::new(
@@ -85,10 +101,10 @@ fn test_ok() {
     assert_eq!(taxa.get(&Node::from(1)).unwrap().as_immutable_string(), &imm("a"));
     assert_eq!(taxa.get(&Node::from(2)).unwrap().as_immutable_string(), &imm("xyz"));
 
-    assert_eq!(network.graph().leaves(), &HashSet::from([Node::from(1), Node::from(2)]));
-    assert_eq!(network.tree_nodes(), &HashSet::from([Node::from(0)]));
-    assert_eq!(network.reticulation_nodes(), &HashSet::new());
-    assert_eq!(network.cross_nodes(), &HashSet::new());
+    assert_eq!(leaves(&network), HashSet::from([Node::from(1), Node::from(2)]));
+    assert_eq!(tree_nodes(&network), HashSet::from([Node::from(0)]));
+    assert_eq!(reticulation_nodes(&network), HashSet::new());
+    assert_eq!(cross_nodes(&network), HashSet::new());
 
     let graph = network.graph();
     let props = graph.basic_properties();
@@ -143,10 +159,10 @@ fn test_tree_child() {
     assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)), "Invalid result: {result:?}");
     let network = result.unwrap();
 
-    assert_eq!(network.graph().leaves(), &HashSet::from([Node::from(3), Node::from(5), Node::from(6)]));
-    assert_eq!(network.tree_nodes(), &HashSet::from([Node::from(0), Node::from(2), Node::from(1)]));
-    assert_eq!(network.reticulation_nodes(), &HashSet::from([Node::from(4)]));
-    assert_eq!(network.cross_nodes(), &HashSet::new());
+    assert_eq!(leaves(&network), HashSet::from([Node::from(3), Node::from(5), Node::from(6)]));
+    assert_eq!(tree_nodes(&network), HashSet::from([Node::from(0), Node::from(2), Node::from(1)]));
+    assert_eq!(reticulation_nodes(&network), HashSet::from([Node::from(4)]));
+    assert_eq!(cross_nodes(&network), HashSet::new());
 
     assert!(!network.graph().basic_properties().tree);
 }

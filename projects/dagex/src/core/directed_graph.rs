@@ -98,6 +98,13 @@ impl DirectedGraph {
         &self.leaves
     }
 
+    /// Checks if node is a leaf, i.e. of out-degree 0. This is an optimized
+    /// version of `self.leaves().is_empty()`, it doesn't involve hash lookup.
+    #[inline(always)]
+    pub fn is_leaf(&self, node: Node) -> bool {
+        self.get_successors(node).is_empty()
+    }
+
     pub fn into_dto(&self) -> DirectedGraphDTO {
         let max_arrows = core::cmp::max(
             self.successors_map.len(),
