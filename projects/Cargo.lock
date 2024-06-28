@@ -69,6 +69,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "dagex_visualization"
+version = "0.0.4"
+dependencies = [
+ "dagex",
+ "fnv1a_hasher",
+ "regex",
+ "rstest",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

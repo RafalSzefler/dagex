@@ -1,5 +1,9 @@
 use dagex::core::{ArrowDTO, DirectedGraph, DirectedGraphDTO};
-use dagex_algorithms::{depth::DepthAlgorithmFactory, traits::{Algorithm, AlgorithmFactory}};
+
+use dagex_algorithms::{
+    traits::{Algorithm, AlgorithmFactory},
+    depth::DepthAlgorithmFactory};
+
 use rstest::rstest;
 
 fn build_graph(arr: &[(i32, i32)]) -> DirectedGraph {
