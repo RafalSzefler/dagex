@@ -43,10 +43,10 @@ fn test_graph_dto(
 
 
 #[rstest]
-#[case(0, &[(0, 0), (1, -1)], &[(0, "A")], r#"{"graph":{"number_of_nodes":0,"arrows":[[0,0],[1,-1]]},"taxa":[[0,"A"]]}"#)]
-#[case(-1, &[(0, 0), (1, -1)], &[], r#"{"graph":{"number_of_nodes":-1,"arrows":[[0,0],[1,-1]]},"taxa":[]}"#)]
-#[case(16, &[], &[(15, "")], r#"{"graph":{"number_of_nodes":16,"arrows":[]},"taxa":[[15,""]]}"#)]
-#[case(-300, &[], &[], r#"{"graph":{"number_of_nodes":-300,"arrows":[]},"taxa":[]}"#)]
+#[case(0, &[(0, 0), (1, -1)], &[(0, "A")], r#"{"number_of_nodes":0,"arrows":[[0,0],[1,-1]],"taxa":[[0,"A"]]}"#)]
+#[case(-1, &[(0, 0), (1, -1)], &[], r#"{"number_of_nodes":-1,"arrows":[[0,0],[1,-1]],"taxa":[]}"#)]
+#[case(16, &[], &[(15, "")], r#"{"number_of_nodes":16,"arrows":[],"taxa":[[15,""]]}"#)]
+#[case(-300, &[], &[], r#"{"number_of_nodes":-300,"arrows":[],"taxa":[]}"#)]
 fn test_phylogenetic_dto(
     #[case] no: i32,
     #[case] arrows: &[(i32, i32)],

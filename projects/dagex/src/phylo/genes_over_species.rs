@@ -72,7 +72,7 @@ impl GenesOverSpecies {
             return GenesOverSpeciesFromResult::EmptyGeneNetworks(gene_networks, species_network);
         }
 
-        let species_taxa_map = species_network.get_taxa();
+        let species_taxa_map = species_network.taxa();
         let mut species_taxa = HashSet::<Taxon>::with_capacity(species_taxa_map.len());
         for taxon in species_taxa_map.values() {
             if !species_taxa.insert(taxon.clone()) {
@@ -87,7 +87,7 @@ impl GenesOverSpecies {
             if !has_valid_taxa(gene_network, &species_taxa) {
                 return GenesOverSpeciesFromResult::IncorrectTaxa(gene_networks, species_network);
             }
-            if by_id.insert(gene_network.get_id(), idx as i32).is_some() {
+            if by_id.insert(gene_network.id(), idx as i32).is_some() {
                 return GenesOverSpeciesFromResult::DuplicatedIds(gene_networks, species_network);
             }
         }
@@ -137,6 +137,6 @@ fn has_valid_taxa(
     species_taxa: &HashSet<Taxon>) -> bool
 {
     let gene_taxa: HashSet<Taxon>
-        = gene_network.get_taxa().values().cloned().collect();
+        = gene_network.taxa().values().cloned().collect();
     gene_taxa.is_subset(species_taxa)
 }

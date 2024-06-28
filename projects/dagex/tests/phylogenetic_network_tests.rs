@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use dagex::{
     core::{
@@ -80,23 +80,28 @@ fn test_ok() {
     let result = PhylogeneticNetwork::from_dto(&dto);
     assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)), "Invalid result: {result:?}");
     let network = result.unwrap();
-    let taxa = network.get_taxa();
+    let taxa = network.taxa();
     assert_eq!(taxa.len(), 2);
     assert_eq!(taxa.get(&Node::from(1)).unwrap().as_immutable_string(), &imm("a"));
     assert_eq!(taxa.get(&Node::from(2)).unwrap().as_immutable_string(), &imm("xyz"));
 
-    let graph = network.get_graph();
-    let props = graph.get_basic_properties();
+    assert_eq!(network.graph().leaves(), &HashSet::from([Node::from(1), Node::from(2)]));
+    assert_eq!(network.tree_nodes(), &HashSet::from([Node::from(0)]));
+    assert_eq!(network.reticulation_nodes(), &HashSet::new());
+    assert_eq!(network.cross_nodes(), &HashSet::new());
+
+    let graph = network.graph();
+    let props = graph.basic_properties();
     assert!(props.acyclic);
     assert!(props.connected);
     assert!(props.rooted);
     assert!(props.tree);
-    let root = graph.get_root().unwrap();
+    let root = graph.root().unwrap();
     assert_eq!(root.as_i32(), 0);
-    let network_root = network.get_root();
+    let network_root = network.root();
     assert_eq!(network_root, root);
 
-    assert_eq!(graph.get_number_of_nodes(), 3);
+    assert_eq!(graph.number_of_nodes(), 3);
     let node0 = Node::from(0);
     let node1 = Node::from(1);
     let node2 = Node::from(2);
@@ -125,18 +130,34 @@ fn test_tree() {
     assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)), "Invalid result: {result:?}");
     let network = result.unwrap();
 
-    assert!(network.get_graph().get_basic_properties().tree);
+    assert!(network.graph().basic_properties().tree);
 }
 
 #[test]
 fn test_tree_child() {
     let dto = PhylogeneticNetworkDTO::new(
-        dg_dto(&[(0, 1), (0, 2), (1, 3), (1, 4), (2, 4), (2, 5)]),
+        dg_dto(&[(0, 1), (0, 2), (1, 3), (1, 4), (2, 4), (2, 5), (4, 6)]),
         HashMap::new());
     
     let result = PhylogeneticNetwork::from_dto(&dto);
     assert!(matches!(result, PhylogeneticNetworkFromResult::Ok(_)), "Invalid result: {result:?}");
     let network = result.unwrap();
 
-    assert!(!network.get_graph().get_basic_properties().tree);
+    assert_eq!(network.graph().leaves(), &HashSet::from([Node::from(3), Node::from(5), Node::from(6)]));
+    assert_eq!(network.tree_nodes(), &HashSet::from([Node::from(0), Node::from(2), Node::from(1)]));
+    assert_eq!(network.reticulation_nodes(), &HashSet::from([Node::from(4)]));
+    assert_eq!(network.cross_nodes(), &HashSet::new());
+
+    assert!(!network.graph().basic_properties().tree);
+}
+
+
+#[test]
+fn test_invalid_leaf() {
+    let dto = PhylogeneticNetworkDTO::new(
+        dg_dto(&[(0, 1), (0, 2), (1, 3), (1, 4), (2, 4), (2, 5)]),
+        HashMap::new());
+    
+    let result = PhylogeneticNetwork::from_dto(&dto);
+    assert!(matches!(result, PhylogeneticNetworkFromResult::LeavesNotOfInDegreeOne(_)), "Invalid result: {result:?}");
 }

@@ -29,19 +29,19 @@ fn test_valid_taxa_1() {
     let genes_network = build_network(
         &[(0, 1)],
         &[(1, "Test")]);
-    let genes_network_id = genes_network.get_id();
+    let genes_network_id = genes_network.id();
     let species_network = build_network(
         &[(0, 1), (0, 2)],
         &[(1, "Test"), (2, "baz")]);
-    let species_network_id = species_network.get_id();
+    let species_network_id = species_network.id();
     let genes_over_species 
         = GenesOverSpecies::from_single_network(genes_network, species_network)
             .unwrap();
     
     let genes = genes_over_species.get_gene_networks();
     assert_eq!(genes.len(), 1);
-    assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].get_id()).unwrap().get_id(), genes_network_id);
-    assert_eq!(genes_over_species.get_species_network().get_id(), species_network_id);
+    assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].id()).unwrap().id(), genes_network_id);
+    assert_eq!(genes_over_species.get_species_network().id(), species_network_id);
 }
 
 
@@ -50,19 +50,19 @@ fn test_valid_taxa_2() {
     let genes_network = build_network(
         &[(0, 1)],
         &[(1, "Test")]);
-    let genes_network_id = genes_network.get_id();
+    let genes_network_id = genes_network.id();
     let species_network = build_network(
         &[(0, 1), (0, 2)],
         &[(1, "Test")]);
-    let species_network_id = species_network.get_id();
+    let species_network_id = species_network.id();
     let genes_over_species 
         = GenesOverSpecies::from_single_network(genes_network, species_network)
             .unwrap();
     
     let genes = genes_over_species.get_gene_networks();
     assert_eq!(genes.len(), 1);
-    assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].get_id()).unwrap().get_id(), genes_network_id);
-    assert_eq!(genes_over_species.get_species_network().get_id(), species_network_id);
+    assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].id()).unwrap().id(), genes_network_id);
+    assert_eq!(genes_over_species.get_species_network().id(), species_network_id);
 }
 
 #[test]

@@ -39,7 +39,7 @@ pub struct DirectedGraph {
     number_of_nodes: i32,
     successors_map: ArrowMap,
     predecessors_map: ArrowMap,
-    leaves: Vec<Node>,
+    leaves: HashSet<Node>,
     root_node: Option<Node>,
     hash_value: u32,
     basic_properties: DirectedGraphBasicProperties,
@@ -50,18 +50,18 @@ static _EMPTY: &[Node] = &[];
 
 impl DirectedGraph {
     #[inline(always)]
-    pub const fn get_max_size() -> i32 {
+    pub const fn max_size() -> i32 {
         1 << 22
     }
 
     #[inline(always)]
-    pub fn get_id(&self) -> GraphId {
+    pub fn id(&self) -> GraphId {
         self.id
     }
 
     /// Retrieves total numbers of nodes in the graph.
     #[inline(always)]
-    pub fn get_number_of_nodes(&self) -> i32 {
+    pub fn number_of_nodes(&self) -> i32 {
         self.number_of_nodes
     }
 
@@ -81,20 +81,20 @@ impl DirectedGraph {
     }
 
     #[inline(always)]
-    pub fn get_basic_properties(&self) -> &DirectedGraphBasicProperties {
+    pub fn basic_properties(&self) -> &DirectedGraphBasicProperties {
         &self.basic_properties
     }
 
     /// Returns the single node with in-degree 0 (i.e. without predecessors)
     /// if it exists.
     #[inline(always)]
-    pub fn get_root(&self) -> Option<Node> {
+    pub fn root(&self) -> Option<Node> {
         self.root_node
     }
 
     /// Returns all nodes with out-degree 0 (i.e. without successors).
     #[inline(always)]
-    pub fn get_leaves(&self) -> &[Node] {
+    pub fn leaves(&self) -> &HashSet<Node> {
         &self.leaves
     }
 
@@ -185,7 +185,7 @@ impl DirectedGraph {
             return DirectedGraphFromResult::EmptyGraph;
         }
 
-        if number_of_nodes > Self::get_max_size() {
+        if number_of_nodes > Self::max_size() {
             return DirectedGraphFromResult::TooBigGraph;
         }
 
@@ -203,7 +203,7 @@ impl DirectedGraph {
             };
         let mut root_node = Option::<Node>::None;
         let mut multiple_roots = false;
-        let mut leaves = Vec::<Node>::with_capacity(8);
+        let mut leaves = HashSet::with_capacity(8);
 
         let arrows = value.arrows();
         let mut multi_arrows = HashSet::<ArrowDTO>::with_capacity(arrows.len());
@@ -255,7 +255,7 @@ impl DirectedGraph {
             }
 
             if succs_len == 0 {
-                leaves.push(node);
+                leaves.insert(node);
             }
 
             if preds_len > 2 || succs_len > 2 {
@@ -321,7 +321,7 @@ impl DirectedGraph {
             predecessors_map: Vec<SmallVec<[Node; 2]>>,
             properties: DirectedGraphBasicProperties,
             root_node: Option<Node>,
-            leaves: Vec<Node>) -> Self
+            leaves: HashSet<Node>) -> Self
     {
         let hash: u32;
 

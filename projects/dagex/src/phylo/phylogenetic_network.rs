@@ -12,6 +12,9 @@ use super::{PhylogeneticNetworkDTO, PhylogeneticNetworkId, Taxon};
 pub struct PhylogeneticNetwork {
     graph: DirectedGraph,
     taxa: HashMap<Node, Taxon>,
+    tree_nodes: HashSet<Node>,
+    reticulation_nodes: HashSet<Node>,
+    cross_nodes: HashSet<Node>,
     id: PhylogeneticNetworkId,
     hash_value: u32,
 }
@@ -30,6 +33,9 @@ pub enum PhylogeneticNetworkFromResult {
 
     /// Passed graph is not binary. Returns passed value.
     NotBinary(DirectedGraph),
+
+    /// Leaves not of in-degree 1.
+    LeavesNotOfInDegreeOne(DirectedGraph),
 
     /// Taxa map contains nodes that are not leaves. Returns passed value.
     TaxaNotLeaves(DirectedGraph),
@@ -63,6 +69,7 @@ impl PhylogeneticNetwork {
     /// # Safety
     /// This method is unsafe since it doesn't verify invariants:
     /// * `graph` has to be acyclic, rooted and binary.
+    /// * leaves have to be of in-degree 1.
     /// * `taxa` has to map leaves only.
     /// * `taxa` cannot contain duplicate nodes.
     #[inline(always)]
@@ -94,7 +101,28 @@ impl PhylogeneticNetwork {
             }
         }
 
-        Self { graph, taxa, id, hash_value }
+        let mut tree_nodes = HashSet::new();
+        let mut reticulation_nodes = HashSet::new();
+        let mut cross_nodes = HashSet::new();
+
+        for node in graph.iter_nodes() {
+            if graph.get_successors(node).is_empty() {
+                continue;
+            }
+
+            if graph.get_predecessors(node).len() <= 1 {
+                tree_nodes.insert(node);
+            }
+            else if graph.get_successors(node).len() == 1 {
+                reticulation_nodes.insert(node);
+            }
+            else
+            {
+                cross_nodes.insert(node);
+            }
+        }
+
+        Self { graph, taxa, tree_nodes, reticulation_nodes, cross_nodes, id, hash_value }
     }
 
     /// Safely constructs [`PhylogeneticNetwork`] directly and
@@ -104,7 +132,7 @@ impl PhylogeneticNetwork {
         taxa: HashMap<Node, Taxon>)
         -> PhylogeneticNetworkFromResult
     {
-        let props = graph.get_basic_properties();
+        let props = graph.basic_properties();
         if !props.acyclic {
             return PhylogeneticNetworkFromResult::NotAcyclic(graph);
         }
@@ -119,12 +147,18 @@ impl PhylogeneticNetwork {
 
         let mut taxa_nodes: HashSet<Node> = taxa.keys().copied().collect();
 
-        for leaf in graph.get_leaves() {
+        for leaf in graph.leaves() {
             taxa_nodes.remove(leaf);
         }
 
         if !taxa_nodes.is_empty() {
             return PhylogeneticNetworkFromResult::TaxaNotLeaves(graph);
+        }
+
+        for leaf in graph.leaves() {
+            if graph.get_predecessors(*leaf).len() != 1 {
+                return PhylogeneticNetworkFromResult::LeavesNotOfInDegreeOne(graph);
+            }
         }
 
         unsafe {
@@ -150,17 +184,17 @@ impl PhylogeneticNetwork {
     }
 
     #[inline(always)]
-    pub fn get_id(&self) -> PhylogeneticNetworkId {
+    pub fn id(&self) -> PhylogeneticNetworkId {
         self.id
     }
 
     #[inline(always)]
-    pub fn get_graph(&self) -> &DirectedGraph {
+    pub fn graph(&self) -> &DirectedGraph {
         &self.graph
     }
 
     #[inline(always)]
-    pub fn get_taxa(&self) -> &HashMap<Node, Taxon> {
+    pub fn taxa(&self) -> &HashMap<Node, Taxon> {
         &self.taxa
     }
 
@@ -170,8 +204,36 @@ impl PhylogeneticNetwork {
     /// Only when the network is constructed in an unsafe way, i.e. when
     /// the underlying graph is not rooted.
     #[inline(always)]
-    pub fn get_root(&self) -> Node {
-        self.graph.get_root().unwrap()
+    pub fn root(&self) -> Node {
+        self.graph.root().unwrap()
+    }
+
+    /// Returns tree nodes of the [`PhylogeneticNetwork`]. Tree node is a
+    /// node of in-degree at most 1. And so it is a node with single incoming
+    /// arrow or a root.
+    #[inline(always)]
+    pub fn tree_nodes(&self) -> &HashSet<Node> {
+        &self.tree_nodes
+    }
+
+    /// Returns reticulation nodes of the [`PhylogeneticNetwork`]. Reticulation
+    /// node is a node of in-degree 2 and out-degree 1. And so it is a node
+    /// with two incoming arrows and one outgoing.
+    #[inline(always)]
+    pub fn reticulation_nodes(&self) -> &HashSet<Node> {
+        &self.reticulation_nodes
+    }
+
+    /// Returns cross nodes of the [`PhylogeneticNetwork`]. Cross
+    /// node is a node of in-degree 2 and out-degree 2.
+    #[inline(always)]
+    pub fn cross_nodes(&self) -> &HashSet<Node> {
+        &self.cross_nodes
+    }
+
+    #[inline(always)]
+    pub fn leaves(&self) -> &HashSet<Node> {
+        self.graph.leaves()
     }
 }
 
@@ -204,7 +266,7 @@ impl Clone for PhylogeneticNetwork {
 #[allow(clippy::missing_fields_in_debug)]
 impl Debug for PhylogeneticNetwork {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let graph_id = self.get_graph().get_id();
+        let graph_id = self.graph().id();
         f.debug_struct("PhylogeneticNetwork")
             .field("id", &i32::from(self.id))
             .field("graph_id", &i32::from(graph_id))

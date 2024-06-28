@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use immutable_string::ImmutableString;
 use serde::{de::{self, Visitor}, ser::SerializeStruct, Deserialize, Serialize};
 
-use crate::phylo::PhylogeneticNetworkDTO;
+use crate::{core::DirectedGraphDTO, phylo::PhylogeneticNetworkDTO};
 
 const STRUCT_NAME: &str = "PhylogeneticNetworkDTO";
-const GRAPH_FIELD: &str = "graph";
+const NODES_LEN_FIELD: &str = "number_of_nodes";
+const ARROWS_FIELD: &str = "arrows";
 const TAXA_FIELD: &str = "taxa";
 
 impl Serialize for PhylogeneticNetworkDTO {
@@ -19,8 +20,10 @@ impl Serialize for PhylogeneticNetworkDTO {
             .map(|p| (*p.0, p.1))
             .collect();
         taxa_content.sort_by(|l, r| l.0.cmp(&r.0));
-        let mut state = serializer.serialize_struct(STRUCT_NAME, 2)?;
-        state.serialize_field(GRAPH_FIELD, &self.graph())?;
+        let mut state = serializer.serialize_struct(STRUCT_NAME, 3)?;
+        let graph = self.graph();
+        state.serialize_field(NODES_LEN_FIELD, &graph.number_of_nodes())?;
+        state.serialize_field(ARROWS_FIELD, &graph.arrows())?;
         state.serialize_field(TAXA_FIELD, &taxa_content)?;
         state.end()
     }
@@ -40,44 +43,53 @@ impl<'de> Visitor<'de> for DirectedGraphDTOVisitor {
         where
             A: serde::de::SeqAccess<'de>,
     {
-        let source = seq.next_element()?.unwrap();
-        let target = seq.next_element()?.unwrap();
-        Ok(PhylogeneticNetworkDTO::new(source, target))
+        let no = seq.next_element()?.unwrap();
+        let arrows = seq.next_element()?.unwrap();
+        let taxa = seq.next_element()?.unwrap();
+        Ok(PhylogeneticNetworkDTO::new(DirectedGraphDTO::new(no, arrows), taxa))
     }
 
     fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
         where
             A: serde::de::MapAccess<'de>,
     {
-        let mut source = None;
-        let mut target: Option<Vec<(i32, ImmutableString)>> = None;
+        let mut no = None;
+        let mut arrows = None;
+        let mut raw_taxa: Option<Vec<(i32, ImmutableString)>> = None;
         while let Some(key) = map.next_key()? {
             match key {
-                GRAPH_FIELD => {
-                    if source.is_some() {
-                        return Err(de::Error::duplicate_field(GRAPH_FIELD));
+                NODES_LEN_FIELD => {
+                    if no.is_some() {
+                        return Err(de::Error::duplicate_field(NODES_LEN_FIELD));
                     }
-                    source = Some(map.next_value()?);
+                    no = Some(map.next_value()?);
+                },
+                ARROWS_FIELD => {
+                    if arrows.is_some() {
+                        return Err(de::Error::duplicate_field(ARROWS_FIELD));
+                    }
+                    arrows = Some(map.next_value()?);
                 },
                 TAXA_FIELD => {
-                    if target.is_some() {
+                    if raw_taxa.is_some() {
                         return Err(de::Error::duplicate_field(TAXA_FIELD));
                     }
-                    target = Some(map.next_value()?);
+                    raw_taxa = Some(map.next_value()?);
                 },
                 _ => { }
             }
         }
 
-        let source = source.ok_or_else(|| de::Error::missing_field(GRAPH_FIELD))?;
-        let target = target.ok_or_else(|| de::Error::missing_field(TAXA_FIELD))?;
-        let mut taxa = HashMap::with_capacity(target.len());
-        for (node, imm) in target {
+        let no = no.ok_or_else(|| de::Error::missing_field(NODES_LEN_FIELD))?;
+        let arrows = arrows.ok_or_else(|| de::Error::missing_field(ARROWS_FIELD))?;
+        let raw_taxa = raw_taxa.ok_or_else(|| de::Error::missing_field(TAXA_FIELD))?;
+        let mut taxa = HashMap::with_capacity(raw_taxa.len());
+        for (node, imm) in raw_taxa {
             if taxa.insert(node, imm).is_some() {
                 return Err(de::Error::custom("Taxa contains duplicate keys."));
             }
         }
-        Ok(PhylogeneticNetworkDTO::new(source, taxa))
+        Ok(PhylogeneticNetworkDTO::new(DirectedGraphDTO::new(no, arrows), taxa))
     }
 }
 
@@ -86,6 +98,6 @@ impl<'de> Deserialize<'de> for PhylogeneticNetworkDTO {
     where
         D: serde::Deserializer<'de>
     {
-        deserializer.deserialize_struct(STRUCT_NAME, &[GRAPH_FIELD, TAXA_FIELD], DirectedGraphDTOVisitor)
+        deserializer.deserialize_struct(STRUCT_NAME, &[NODES_LEN_FIELD, ARROWS_FIELD, TAXA_FIELD], DirectedGraphDTOVisitor)
     }
 }
