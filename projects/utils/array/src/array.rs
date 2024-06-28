@@ -4,14 +4,14 @@ use std::{alloc::Layout, ptr::{self, null_mut}};
 /// Represents a dynamically created array with length known at runtime.
 /// Otherwise a thin wrapper around slices.
 pub struct Array<T>
-    where T: Sized + Default
+    where T: Sized
 {
     ptr: *mut T,
     length: usize,
 }
 
 impl<T> Array<T>
-    where T: Sized + Default
+    where T: Sized
 {
     const ALIGNEMENT: usize = {
         let alignement = core::mem::align_of::<T>();
@@ -48,11 +48,11 @@ impl<T> Array<T>
     }
 
     /// Creates a new instance of [`Array`]. It allocates the corresponding
-    /// buffer on heap.
+    /// buffer on heap and fills it with values generated through `factory`.
     /// 
     /// # Panics
-    /// Only when `length` is bigget than [`Self::max()`].
-    pub fn new(length: usize) -> Self {
+    /// Only when `length` is bigger than [`Self::max()`].
+    pub fn new_with_fill<F: Fn()->T>(length: usize, factory: F) -> Self {
         assert!(length < Self::max(), "Length must be smaller than {}.", Self::max());
 
         if length == 0 {
@@ -63,7 +63,7 @@ impl<T> Array<T>
         let buffer = (unsafe { std::alloc::alloc_zeroed(layout) }).cast::<T>();
         for idx in 0..length {
             let piece = unsafe { buffer.add(idx) };
-            unsafe { *piece = T::default() };
+            unsafe { *piece = factory() };
         }
         Self { ptr: buffer, length: length }
     }
@@ -83,8 +83,21 @@ impl<T> Array<T>
     }
 }
 
-impl<T> Default for Array<T>
+impl<T> Array<T>
     where T: Sized + Default
+{
+    /// Creates a new instance of [`Array`]. It allocates the corresponding
+    /// buffer on heap and fills it with `T::default()`.
+    /// 
+    /// # Panics
+    /// Only when `length` is bigger than [`Self::max()`].
+    pub fn new(length: usize) -> Self {
+        Self::new_with_fill(length, T::default)
+    }
+}
+
+impl<T> Default for Array<T>
+    where T: Sized
 {
     fn default() -> Self {
         Self { ptr: null_mut(), length: 0 }
@@ -92,7 +105,7 @@ impl<T> Default for Array<T>
 }
 
 impl<T> Drop for Array<T>
-    where T: Sized + Default
+    where T: Sized
 {
     fn drop(&mut self) {
         let length = self.length;
@@ -109,7 +122,7 @@ impl<T> Drop for Array<T>
 }
 
 impl<T> core::fmt::Debug for Array<T>
-    where T: Sized + Default
+    where T: Sized
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let numeric_value = core::ptr::addr_of!(self.ptr).cast::<usize>();
@@ -122,7 +135,7 @@ impl<T> core::fmt::Debug for Array<T>
 
 
 impl<T> PartialEq for Array<T>
-    where T: Sized + Default + PartialEq
+    where T: Sized + PartialEq
 {
     fn eq(&self, other: &Self) -> bool {
         self.as_slice() == other.as_slice()
@@ -131,12 +144,12 @@ impl<T> PartialEq for Array<T>
 
 
 impl<T> Eq for Array<T>
-    where T: Sized + Default + Eq
+    where T: Sized + Eq
 { }
 
 
 impl<T> Hash for Array<T>
-    where T: Sized + Default + Hash
+    where T: Sized + Hash
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
