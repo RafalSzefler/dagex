@@ -1,0 +1,11 @@
+[package]
+name = "gvis"
+description = "Package for graph visualization."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+immutable_string = { path = "../immutable_string" }

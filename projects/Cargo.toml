@@ -4,6 +4,7 @@ members = [
     "utils/tagged_pointer",
     "utils/cancellation_token",
     "utils/fnv1a_hasher",
+    "utils/gvis",
     "utils/immutable_string",
     "dagex",
     "dagex_visualization",
