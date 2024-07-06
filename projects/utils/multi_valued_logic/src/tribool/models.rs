@@ -24,7 +24,6 @@ impl TriBool {
     }
 
     #[must_use]
-    #[inline(always)]
     pub const fn and(self, rhs: Self) -> Self {
         const TABLE: [[TriBool; 3]; 3] = [
             [TriBool::FALSE,  TriBool::FALSE,    TriBool::FALSE],
@@ -35,7 +34,6 @@ impl TriBool {
     }
 
     #[must_use]
-    #[inline(always)]
     pub const fn or(self, rhs: Self) -> Self {
         const TABLE: [[TriBool; 3]; 3] = [
             [TriBool::FALSE,    TriBool::UNKNOWN,  TriBool::TRUE],
