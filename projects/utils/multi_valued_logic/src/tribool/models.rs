@@ -1,6 +1,4 @@
-use core::hash::{Hash, Hasher};
-
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub struct TriBool {
     value: u8,
 }
@@ -82,21 +80,6 @@ impl TriBool {
             2 => "TRUE",
             _ => panic!("Invalid TriBool instance.")
         }
-    }
-}
-
-impl PartialEq for TriBool {
-    #[inline(always)]
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
-
-impl Eq for TriBool { }
-
-impl Hash for TriBool {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.value.hash(state);
     }
 }
 
