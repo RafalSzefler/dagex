@@ -1,3 +1,5 @@
+#![cfg(feature="serde")]
+
 use serde::{de::Visitor, Deserialize, Serialize};
 
 use crate::ImmutableString;
