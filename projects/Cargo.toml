@@ -5,6 +5,7 @@ members = [
     "utils/cancellation_token",
     "utils/fnv1a_hasher",
     "utils/immutable_string",
+    "utils/multi_valued_logic",
     "dagex",
     "dagex_algorithms",
 ]
