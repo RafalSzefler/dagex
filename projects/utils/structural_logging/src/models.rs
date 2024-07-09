@@ -1,5 +1,5 @@
 use core::hash::{Hash, Hasher};
-use std::{cell::UnsafeCell, collections::HashMap, sync::OnceLock, time::{Duration, SystemTime, UNIX_EPOCH}};
+use std::{cell::UnsafeCell, collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, OnceLock}, time::{Duration, SystemTime, UNIX_EPOCH}};
 
 use immutable_string::ImmutableString;
 
@@ -152,6 +152,7 @@ pub struct LogDataHolder {
     created_at: SystemTime,
     template_params: HashMap<ImmutableString, SLObject>,
     additional_data: UnsafeCell<HashMap<ImmutableString, SLObject>>,
+    additional_data_initialized: AtomicBool,
 }
 
 impl Default for LogDataHolder {
@@ -163,6 +164,7 @@ impl Default for LogDataHolder {
             template: Template::default(),
             template_params: HashMap::default(),
             additional_data: UnsafeCell::default(),
+            additional_data_initialized: AtomicBool::default(),
         }
     }
 }
@@ -190,6 +192,7 @@ impl LogDataHolder {
             log_level: log_level,
             template_params: template_params,
             additional_data: UnsafeCell::default(),
+            additional_data_initialized: AtomicBool::default(),
         }
     }
 
@@ -207,16 +210,7 @@ impl LogDataHolder {
 
     #[inline(always)]
     pub fn additional_data(&self) -> &HashMap<ImmutableString, SLObject> {
-        let additional_data = unsafe {
-            &mut *self.additional_data.get()
-        };
-        if additional_data.is_empty() {
-            let mut new_additional_data = HashMap::with_capacity(4);
-            new_additional_data.insert(key_created_at().clone(), self.created_at.into());
-            new_additional_data.insert(key_log_level().clone(), self.log_level.into());
-            *additional_data = new_additional_data;
-        }
-        additional_data
+        self.additional_data_mut()
     }
 
     #[inline(always)]
@@ -226,6 +220,27 @@ impl LogDataHolder {
     pub fn update_data<T>(&mut self, key: ImmutableString, value: T)
         where T: Into<SLObject>
     {
-        self.additional_data.get_mut().insert(key, value.into());
+        self.additional_data_mut().insert(key, value.into());
+    }
+
+    fn additional_data_mut(&self) -> &mut HashMap<ImmutableString, SLObject> {
+        let additional_data = unsafe {
+            &mut *self.additional_data.get()
+        };
+
+        let result = self.additional_data_initialized.compare_exchange(
+            false,
+            true,
+            Ordering::Acquire,
+            Ordering::Relaxed);
+        
+        if result.is_ok() {
+            let mut new_additional_data = HashMap::with_capacity(4);
+            new_additional_data.insert(key_created_at().clone(), self.created_at.into());
+            new_additional_data.insert(key_log_level().clone(), self.log_level.into());
+            *additional_data = new_additional_data;
+        }
+
+        additional_data
     }
 }
