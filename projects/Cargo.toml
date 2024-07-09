@@ -6,6 +6,8 @@ members = [
     "utils/fnv1a_hasher",
     "utils/immutable_string",
     "utils/multi_valued_logic",
+    "utils/structural_logging",
+    "utils/structural_logging_console",
     "dagex",
     "dagex_algorithms",
 ]
@@ -18,6 +20,9 @@ authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
 rust-version = "1.78"
 
 [workspace.dependencies]
+termcolor = "1.4"
+chrono = "0.4.38"
+paste = "1.0"
 getrandom = "0.2"
 rand = "0.8.5"
 ctor = "0.2.8"
