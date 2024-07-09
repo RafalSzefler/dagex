@@ -7,6 +7,7 @@ use crate::{macros::{readonly, readonly_derive}, traits::LogLevel};
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum SLObject {
+    Empty,
     LogLevel(SLLogLevel),
     SystemTime(SLSystemTime),
     Duration(SLDuration),
@@ -158,13 +159,13 @@ pub mod keys {
     macro_rules! key {
         ( $id: ident ) => {
             paste! {
-                pub fn $id() -> &'static ImmutableString {
+                pub fn $id() -> ImmutableString {
                     static [< STATIC_ $id >]: OnceLock<ImmutableString>
                         = OnceLock::new();
 
                     [< STATIC_ $id >].get_or_init(|| {
                         ImmutableString::new(stringify!($id)).unwrap()
-                    })
+                    }).clone()
                 }
             }
         };
@@ -185,10 +186,10 @@ impl LogDataHolder {
         template_params: SLDict) -> Self
     {
         let mut data = HashMap::with_capacity(5);
-        data.insert(keys::created_at().clone(), created_at.into());
-        data.insert(keys::log_level().clone(), log_level.into());
-        data.insert(keys::template().clone(), template.into());
-        data.insert(keys::template_params().clone(), SLObject::Dict(Box::new(template_params)));
+        data.insert(keys::created_at(), created_at.into());
+        data.insert(keys::log_level(), log_level.into());
+        data.insert(keys::template(), template.into());
+        data.insert(keys::template_params(), SLObject::Dict(Box::new(template_params)));
         Self { log_data: data }
     }
 

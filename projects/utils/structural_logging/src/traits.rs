@@ -22,9 +22,15 @@ pub trait StructuralLoggerFactory {
     type Logger : StructuralLogger;
 
     fn create(&self, name: &ImmutableString) -> Self::Logger;
+
+    fn create_from_str(&self, name: &str) -> Self::Logger {
+        let imm = ImmutableString::new(name)
+            .expect("StructuralLoggerFactory - create_from_str() fail on new ImmutableString");
+        self.create(&imm)
+    }
 }
 
-pub trait StructuralLogHandler {
+pub trait StructuralLogHandler : Sync + Send {
     fn handle(&mut self, log: &LogDataHolder);
 }
 

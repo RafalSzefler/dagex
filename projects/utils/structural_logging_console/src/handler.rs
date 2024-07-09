@@ -126,9 +126,19 @@ impl StructuralLogHandler for ConsoleHandler {
             return;
         }
 
-        let template = match &data[keys::template()] {
+        let template = match &data[&keys::template()] {
             SLObject::String(slstring) => slstring.value(),
             _ => panic!("Invalid template type."),
+        };
+
+        let empty_map = HashMap::<ImmutableString, SLObject>::default();
+        let template_params = if let Some(value) = data.get(&keys::template_params()) {
+            match value {
+                SLObject::Dict(data) => data.value(),
+                _ => panic!("Invalid template_params type"),
+            }
+        } else {
+            &empty_map
         };
 
         let parsed_template = {
@@ -156,7 +166,9 @@ impl StructuralLogHandler for ConsoleHandler {
             let text = &parsed_template[idx];
             text.write(&mut ctx);
             let key = &parsed_template[idx+1];
-            if let Some(value) = data.get(key) {
+            if let Some(value) = template_params.get(key) {
+                value.write(&mut ctx);
+            } else if let Some(value) = data.get(key) {
                 value.write(&mut ctx);
             }
         }

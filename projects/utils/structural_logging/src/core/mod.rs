@@ -1,3 +1,4 @@
+mod background_worker;
 mod core_logger_factory_builder;
 mod core_logger_factory;
 mod core_logger;

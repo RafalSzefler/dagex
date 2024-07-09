@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use crate::traits::{StructuralLogHandler, StructuralLoggerFactoryBuilder};
 
-use super::CoreLoggerFactory;
+use super::{background_worker::BackgroundWorker, CoreLoggerFactory};
 
 #[derive(Default)]
 pub struct CoreLoggerFactoryBuilder {
@@ -15,6 +17,7 @@ impl StructuralLoggerFactoryBuilder for CoreLoggerFactoryBuilder {
     }
 
     fn build(self) -> Self::Factory {
-        todo!()
+        let worker = BackgroundWorker::new(self.handlers);
+        CoreLoggerFactory::new(Arc::new(worker))
     }
 }

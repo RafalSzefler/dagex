@@ -1,3 +1,4 @@
+#![allow(clippy::cast_sign_loss)]
 use std::{collections::HashMap, io::Write, time::SystemTime};
 
 use chrono::{DateTime, SecondsFormat, Utc};
@@ -17,17 +18,17 @@ impl<'a> Context<'a> {
     
     pub fn write(&mut self, txt: &str, color: &ColorSpec) {
         if self.is_terminal {
-            self.stdout.set_color(color).unwrap();
+            self.stdout.set_color(color).expect("stdout.set_color() fail");
         }
-        self.stdout.write_all(txt.as_bytes()).unwrap();
+        self.stdout.write_all(txt.as_bytes()).expect("stdout.write_all() fail");
     }
 
     pub fn flush(&mut self) {
-        self.stdout.write_all(b"\n").unwrap();
+        self.stdout.write_all(b"\n").expect("stdout.write_all() fail");
         if self.is_terminal {
-            self.stdout.reset().unwrap();
+            self.stdout.reset().expect("stdout.reset() fail");
         }
-        self.stdout.flush().unwrap();
+        self.stdout.flush().expect("stdout.flush() fail");
     }
 }
 
@@ -97,9 +98,12 @@ impl ConsoleWrite for std::time::Duration {
         let mut secs = (total_millis / 1000) as u64;
         let mut buffer = [0u8; 46];
         let mut offset = 0usize;
+        let mut char_buffer = [0u8; 4];
         loop {
-            buffer[offset] = b'0' + ((secs % 10) as u8);
-            offset += 1;
+            let chr = char::from_digit((secs % 10) as u32, 10).unwrap();
+            let data = chr.encode_utf8(&mut char_buffer);
+            buffer[offset..(offset+data.len())].copy_from_slice(data.as_bytes());
+            offset += data.len();
             secs /= 10;
             if secs == 0 {
                 break;
@@ -111,7 +115,10 @@ impl ConsoleWrite for std::time::Duration {
         offset += 1;
         let start = offset;
         loop {
-            buffer[offset] = b'0' +((millis % 10) as u8);
+            let chr = char::from_digit(u32::from(millis % 10), 10).unwrap();
+            let data = chr.encode_utf8(&mut char_buffer);
+            buffer[offset..(offset+data.len())].copy_from_slice(data.as_bytes());
+            offset += data.len();
             offset += 1;
             millis /= 10;
             if millis == 0 {
@@ -136,7 +143,31 @@ impl ConsoleWrite for std::time::Duration {
 
 impl ConsoleWrite for i64 {
     fn write(&self, ctx: &mut Context) {
-        ctx.write(&self.to_string(), &color_spec(Color::Blue));
+        let mut value = *self;
+        if value == 0 {
+            ctx.write("0", &color_spec(Color::Blue));
+            return;
+        }
+
+        let mut buffer = [0u8; 24];
+        let mut offset = 0;
+        if value < 0 {
+            buffer[0] = b'-';
+            offset += 1;
+            value = -value;
+        }
+        let start = offset;
+        let mut char_buffer = [0u8; 4];
+        while value > 0 {
+            let chr = char::from_digit((value % 10) as u32, 10).unwrap();
+            let data = chr.encode_utf8(&mut char_buffer);
+            buffer[offset..(offset+data.len())].copy_from_slice(data.as_bytes());
+            offset += data.len();
+            value /= 10;
+        }
+        buffer[start..offset].reverse();
+        let slice = unsafe { core::str::from_utf8_unchecked(&buffer[0..offset]) };
+        ctx.write(slice, &color_spec(Color::Blue));
     }
 }
 
@@ -195,6 +226,7 @@ impl ConsoleWrite for SLObject {
             SLObject::Bool(inner) => inner.value().write(ctx),
             SLObject::Array(inner) => inner.value().write(ctx),
             SLObject::Dict(inner) => inner.value().write(ctx),
+            SLObject::Empty => { },
         }
     }
 }
