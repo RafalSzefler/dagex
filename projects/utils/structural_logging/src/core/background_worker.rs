@@ -21,7 +21,7 @@ fn handle_log(
 {
     match ev {
         Event::LogData(log_data) => {
-            if !log_data.log_data().is_empty() {
+            if !log_data.is_empty() {
                 for handler in handlers {
                     handler.handle(&log_data);
                 }

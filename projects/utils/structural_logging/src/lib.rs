@@ -11,3 +11,4 @@ mod macros;
 pub mod traits;
 pub mod models;
 pub mod core;
+pub mod template;

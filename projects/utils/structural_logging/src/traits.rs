@@ -4,10 +4,14 @@ use crate::models::LogDataHolder;
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum LogLevel {
-    Debug,
-    Info,
-    Warning,
-    Error,
+    Debug = 0,
+    Info = 1,
+    Warning = 2,
+    Error = 3,
+}
+
+impl Default for LogLevel {
+    fn default() -> Self { Self::Debug }
 }
 
 pub trait StructuralLog {
@@ -38,6 +42,8 @@ pub trait StructuralLoggerFactoryBuilder {
     type Factory : StructuralLoggerFactory;
 
     fn add_handler(&mut self, handler: Box<dyn StructuralLogHandler>);
+
+    fn set_log_level(&mut self, log_level: LogLevel);
 
     fn build(self) -> Self::Factory;
 }

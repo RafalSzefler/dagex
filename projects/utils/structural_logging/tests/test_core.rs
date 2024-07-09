@@ -1,7 +1,7 @@
-use std::{collections::HashMap, sync::{Arc, Mutex}, time::SystemTime};
+use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
 
 use immutable_string::ImmutableString;
-use structural_logging::{core::CoreLoggerFactoryBuilder, models::{LogDataHolder, SLDict, SLObject}, traits::{LogLevel, StructuralLog, StructuralLogHandler, StructuralLogger, StructuralLoggerFactory, StructuralLoggerFactoryBuilder}};
+use structural_logging::{core::CoreLoggerFactoryBuilder, models::{LogDataHolder, SLObject}, template::TemplateBuilder, traits::{LogLevel, StructuralLog, StructuralLogHandler, StructuralLogger, StructuralLoggerFactory, StructuralLoggerFactoryBuilder}};
 
 #[derive(Default)]
 pub struct TestHandler {
@@ -17,7 +17,7 @@ impl TestHandler {
 impl StructuralLogHandler for TestHandler {
     fn handle(&mut self, log: &LogDataHolder) {
         let key = ImmutableString::new("logger_name").unwrap();
-        let name_object = &log.log_data()[&key];
+        let name_object = &log.additional_data()[&key];
         let name = match name_object {
             SLObject::String(value) => value.value(),
             _ => panic!("Invalid logger_name"),
@@ -27,15 +27,20 @@ impl StructuralLogHandler for TestHandler {
     }
 }
 
+static TMPL_BUILDER: OnceLock<TemplateBuilder> = OnceLock::new();
+pub fn tmpl_builder() -> &'static TemplateBuilder {
+    TMPL_BUILDER.get_or_init(Default::default)
+}
+
 pub struct TestLog { }
 
 impl StructuralLog for TestLog {
     fn log_data(&self) -> LogDataHolder {
+        let tmpl = tmpl_builder().create("xyz");
         LogDataHolder::new(
-            SystemTime::now(),
             LogLevel::Info,
-            ImmutableString::new("xyz").unwrap(),
-            SLDict::new(HashMap::new()))
+            tmpl,
+            HashMap::new())
     }
 }
 

@@ -1,9 +1,9 @@
 use core::hash::{Hash, Hasher};
-use std::{collections::HashMap, time::{Duration, SystemTime}};
+use std::{cell::UnsafeCell, collections::HashMap, sync::OnceLock, time::{Duration, SystemTime, UNIX_EPOCH}};
 
 use immutable_string::ImmutableString;
 
-use crate::{macros::{readonly, readonly_derive}, traits::LogLevel};
+use crate::{macros::{readonly, readonly_derive}, template::Template, traits::LogLevel};
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum SLObject {
@@ -145,61 +145,87 @@ impl std::fmt::Debug for SLDict {
     }
 }
 
-#[derive(Default)]
 pub struct LogDataHolder {
-    log_data: HashMap<ImmutableString, SLObject>,
+    empty: bool,
+    template: Template,
+    log_level: LogLevel,
+    created_at: SystemTime,
+    template_params: HashMap<ImmutableString, SLObject>,
+    additional_data: UnsafeCell<HashMap<ImmutableString, SLObject>>,
 }
 
-pub mod keys {
-    #![allow(non_upper_case_globals)]
-    use paste::paste;
-    use std::sync::OnceLock;
-    use immutable_string::ImmutableString;
-
-    macro_rules! key {
-        ( $id: ident ) => {
-            paste! {
-                pub fn $id() -> ImmutableString {
-                    static [< STATIC_ $id >]: OnceLock<ImmutableString>
-                        = OnceLock::new();
-
-                    [< STATIC_ $id >].get_or_init(|| {
-                        ImmutableString::new(stringify!($id)).unwrap()
-                    }).clone()
-                }
-            }
-        };
+impl Default for LogDataHolder {
+    fn default() -> Self {
+        Self {
+            empty: true,
+            log_level: LogLevel::default(),
+            created_at: UNIX_EPOCH,
+            template: Template::default(),
+            template_params: HashMap::default(),
+            additional_data: UnsafeCell::default(),
+        }
     }
+}
 
-    key!(created_at);
-    key!(log_level);
-    key!(logger_name);
-    key!(template);
-    key!(template_params);
+static CREATED_AT: OnceLock<ImmutableString> = OnceLock::new();
+fn key_created_at() -> &'static ImmutableString {
+    CREATED_AT.get_or_init(|| { ImmutableString::new("created_at").unwrap() })
+}
+
+static LOG_LEVEL: OnceLock<ImmutableString> = OnceLock::new();
+fn key_log_level() -> &'static ImmutableString {
+    LOG_LEVEL.get_or_init(|| { ImmutableString::new("log_level").unwrap() })
 }
 
 impl LogDataHolder {
     pub fn new(
-        created_at: SystemTime,
         log_level: LogLevel,
-        template: ImmutableString,
-        template_params: SLDict) -> Self
+        template: Template,
+        template_params: HashMap<ImmutableString, SLObject>) -> Self
     {
-        let mut data = HashMap::with_capacity(5);
-        data.insert(keys::created_at(), created_at.into());
-        data.insert(keys::log_level(), log_level.into());
-        data.insert(keys::template(), template.into());
-        data.insert(keys::template_params(), SLObject::Dict(Box::new(template_params)));
-        Self { log_data: data }
+        Self {
+            empty: false,
+            template: template,
+            created_at: SystemTime::now(),
+            log_level: log_level,
+            template_params: template_params,
+            additional_data: UnsafeCell::default(),
+        }
     }
 
     #[inline(always)]
-    pub fn log_data(&self) -> &HashMap<ImmutableString, SLObject> { &self.log_data }
+    pub fn template(&self) -> &Template { &self.template }
+
+    #[inline(always)]
+    pub fn created_at(&self) -> SystemTime { self.created_at }
+
+    #[inline(always)]
+    pub fn log_level(&self) -> LogLevel { self.log_level }
+
+    #[inline(always)]
+    pub fn template_params(&self) -> &HashMap<ImmutableString, SLObject> { &self.template_params }
+
+    #[inline(always)]
+    pub fn additional_data(&self) -> &HashMap<ImmutableString, SLObject> {
+        let additional_data = unsafe {
+            &mut *self.additional_data.get()
+        };
+        if additional_data.is_empty() {
+            let mut new_additional_data = HashMap::with_capacity(4);
+            new_additional_data.insert(key_created_at().clone(), self.created_at.into());
+            new_additional_data.insert(key_log_level().clone(), self.log_level.into());
+            *additional_data = new_additional_data;
+        }
+        additional_data
+    }
+
+    #[inline(always)]
+    pub fn is_empty(&self) -> bool { self.empty }
 
     #[inline(always)]
     pub fn update_data<T>(&mut self, key: ImmutableString, value: T)
         where T: Into<SLObject>
     {
-        self.log_data.insert(key, value.into());
+        self.additional_data.get_mut().insert(key, value.into());
     }
 }
