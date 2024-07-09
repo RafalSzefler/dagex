@@ -1,0 +1,16 @@
+[package]
+name = "structural_logging_console"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+termcolor = { workspace = true }
+chrono = { workspace = true }
+structural_logging = { path = "../structural_logging" }
+immutable_string = { path = "../immutable_string" }
+
+[dev-dependencies]
+
+[features]
