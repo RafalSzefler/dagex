@@ -261,8 +261,10 @@ unsafe impl Sync for StringBuffer {}
 
 impl PartialEq for StringBuffer {
     fn eq(&self, other: &Self) -> bool {
-        self.get_hash() == other.get_hash()
-            && self.as_slice() == other.as_slice()
+        core::ptr::eq(self.raw_ptr, other.raw_ptr)
+        || (
+            self.get_hash() == other.get_hash()
+            && self.as_slice() == other.as_slice())
     }
 }
 
