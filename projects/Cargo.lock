@@ -112,6 +112,8 @@ version = "0.0.4"
 dependencies = [
  "array",
  "dagex",
+ "fnv1a_hasher",
+ "immutable_string",
  "rstest",
  "structural_logging",
  "structural_logging_console",

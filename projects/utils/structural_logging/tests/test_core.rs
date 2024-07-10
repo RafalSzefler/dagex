@@ -15,7 +15,7 @@ impl TestHandler {
 }
 
 impl StructuralLogHandler for TestHandler {
-    fn handle(&mut self, log: &LogDataHolder) {
+    fn handle(&self, log: &LogDataHolder) {
         let key = ImmutableString::new("logger_name").unwrap();
         let name_object = &log.additional_data()[&key];
         let name = match name_object {
@@ -51,7 +51,7 @@ fn test_core() {
     {
         let handler = TestHandler::new(names.clone());
         let mut builder = CoreLoggerFactoryBuilder::default();
-        builder.add_handler(Box::new(handler));
+        builder.add_handler(Arc::new(handler));
         let factory = builder.build();
         let logger1 = factory.create_from_str("misc");
         let logger2 = factory.create_from_str("abc");

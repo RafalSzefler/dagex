@@ -1,5 +1,5 @@
 use std::{
-    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
+    sync::{mpsc::{channel, Receiver, Sender, TryRecvError}, Arc},
     thread::{self, JoinHandle}};
 
 use crate::{models::LogDataHolder, traits::StructuralLogHandler};
@@ -17,7 +17,7 @@ pub(super) struct BackgroundWorker {
 fn handle_log(
     is_running: &mut bool,
     ev: Event,
-    handlers: &mut Vec<Box<dyn StructuralLogHandler>>)
+    handlers: &mut Vec<Arc<dyn StructuralLogHandler>>)
 {
     match ev {
         Event::LogData(log_data) => {
@@ -35,7 +35,7 @@ fn handle_log(
 
 fn run_in_background(
     rx: &Receiver<Event>,
-    mut handlers: Vec<Box<dyn StructuralLogHandler>>)
+    mut handlers: Vec<Arc<dyn StructuralLogHandler>>)
 {
     let mut is_running = true;
 
@@ -58,7 +58,7 @@ fn run_in_background(
 }
 
 impl BackgroundWorker {
-    pub(super) fn new(handlers: Vec<Box<dyn StructuralLogHandler>>) -> Self {
+    pub(super) fn new(handlers: Vec<Arc<dyn StructuralLogHandler>>) -> Self {
         let (tx, rx) = channel::<Event>();
         let handle = thread::spawn(move || {
             run_in_background(&rx, handlers);

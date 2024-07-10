@@ -10,7 +10,7 @@ pub struct ConsoleHandler;
 
 
 impl StructuralLogHandler for ConsoleHandler {
-    fn handle(&mut self, log: &LogDataHolder) {
+    fn handle(&self, log: &LogDataHolder) {
         if log.is_empty() {
             return;
         }

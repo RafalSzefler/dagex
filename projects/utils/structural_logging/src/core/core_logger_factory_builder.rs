@@ -7,13 +7,14 @@ use super::{background_worker::BackgroundWorker, CoreLoggerFactory};
 #[derive(Default)]
 pub struct CoreLoggerFactoryBuilder {
     log_level: LogLevel,
-    handlers: Vec<Box<dyn StructuralLogHandler>>,
+    handlers: Vec<Arc<dyn StructuralLogHandler>>,
 }
 
 impl StructuralLoggerFactoryBuilder for CoreLoggerFactoryBuilder {
     type Factory = CoreLoggerFactory;
 
-    fn add_handler(&mut self, handler: Box<dyn StructuralLogHandler>) {
+    
+    fn add_handler(&mut self, handler: Arc<dyn StructuralLogHandler>) {
         self.handlers.push(handler);
     }
 

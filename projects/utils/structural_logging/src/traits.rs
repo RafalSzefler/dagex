@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use immutable_string::ImmutableString;
 
 use crate::models::LogDataHolder;
@@ -35,13 +37,13 @@ pub trait StructuralLoggerFactory {
 }
 
 pub trait StructuralLogHandler : Sync + Send {
-    fn handle(&mut self, log: &LogDataHolder);
+    fn handle(&self, log: &LogDataHolder);
 }
 
 pub trait StructuralLoggerFactoryBuilder {
     type Factory : StructuralLoggerFactory;
 
-    fn add_handler(&mut self, handler: Box<dyn StructuralLogHandler>);
+    fn add_handler(&mut self, handler: Arc<dyn StructuralLogHandler>);
 
     fn set_log_level(&mut self, log_level: LogLevel);
 

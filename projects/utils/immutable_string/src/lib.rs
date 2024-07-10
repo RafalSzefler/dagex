@@ -18,5 +18,7 @@ mod weak_immutable_string;
 
 mod impl_serde;
 
+pub mod macros;
+
 pub use construction_error::ConstructionError;
 pub use immutable_string::ImmutableString;

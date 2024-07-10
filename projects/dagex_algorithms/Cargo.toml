@@ -8,8 +8,10 @@ rust-version.workspace = true
 [dependencies]
 dagex = { path = "../dagex" }
 array = { path = "../utils/array" }
+immutable_string = { path = "../utils/immutable_string" }
 structural_logging = { path = "../utils/structural_logging" }
 structural_logging_console = { path = "../utils/structural_logging_console" }
+fnv1a_hasher = { path = "../utils/fnv1a_hasher" }
 
 [dev-dependencies]
 rstest = { workspace = true }
