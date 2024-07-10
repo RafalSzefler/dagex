@@ -84,7 +84,7 @@ impl PhylogeneticNetwork {
                 .iter()
                 .map(|kvp| (*kvp.0, kvp.1.clone()))
                 .collect();
-            ordered.sort_by_key(|kvp| kvp.0.as_i32());
+            ordered.sort_by_key(|kvp| kvp.0.id());
 
             ordered.len().hash(&mut hasher);
             for (node, taxon) in ordered {
@@ -219,9 +219,11 @@ impl PhylogeneticNetwork {
 
 impl PartialEq for PhylogeneticNetwork {
     fn eq(&self, other: &Self) -> bool {
-        self.hash_value == other.hash_value
-            && self.taxa == other.taxa
+        self.id == other.id
+        || (
+            self.hash_value == other.hash_value
             && self.graph == other.graph
+            && self.taxa == other.taxa)
     }
 }
 

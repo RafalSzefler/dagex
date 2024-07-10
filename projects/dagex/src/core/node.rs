@@ -1,4 +1,3 @@
-
 #[derive(PartialEq, Eq, Clone, Copy, Hash, Debug)]
 pub struct Node {
     id: i32,
@@ -6,7 +5,7 @@ pub struct Node {
 
 impl Node {
     #[inline(always)]
-    pub fn as_i32(&self) -> i32 {
+    pub fn id(&self) -> i32 {
         self.id
     }
 }

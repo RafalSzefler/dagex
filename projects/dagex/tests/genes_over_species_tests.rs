@@ -38,10 +38,10 @@ fn test_valid_taxa_1() {
         = GenesOverSpecies::from_single_network(genes_network, species_network)
             .unwrap();
     
-    let genes = genes_over_species.get_gene_networks();
+    let genes = genes_over_species.gene_networks();
     assert_eq!(genes.len(), 1);
     assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].id()).unwrap().id(), genes_network_id);
-    assert_eq!(genes_over_species.get_species_network().id(), species_network_id);
+    assert_eq!(genes_over_species.species_network().id(), species_network_id);
 }
 
 
@@ -59,10 +59,10 @@ fn test_valid_taxa_2() {
         = GenesOverSpecies::from_single_network(genes_network, species_network)
             .unwrap();
     
-    let genes = genes_over_species.get_gene_networks();
+    let genes = genes_over_species.gene_networks();
     assert_eq!(genes.len(), 1);
     assert_eq!(genes_over_species.get_gene_network_by_id(genes[0].id()).unwrap().id(), genes_network_id);
-    assert_eq!(genes_over_species.get_species_network().id(), species_network_id);
+    assert_eq!(genes_over_species.species_network().id(), species_network_id);
 }
 
 #[test]

@@ -27,7 +27,7 @@ impl<'a> DepthResult<'a> {
 impl<'a> DepthAlgorithm<'a> {
     #[allow(clippy::cast_sign_loss)]
     fn scan(&mut self, node: Node) -> i32 {
-        let idx = node.as_i32() as usize;
+        let idx = node.id() as usize;
 
         {
             let scanned_nodes = self.scanned_nodes.as_slice_mut();

@@ -149,12 +149,12 @@ fn test_binary() {
     assert!(props.connected);
     assert!(props.rooted);
     assert!(props.binary);
-    assert!(graph.root().is_some_and(|val| val.as_i32() == 0));
+    assert!(graph.root().is_some_and(|val| val.id() == 0));
     let mut leaves = Vec::from_iter(graph.leaves().into_iter().map(|n| *n));
-    leaves.sort_by_key(Node::as_i32);
+    leaves.sort_by_key(Node::id);
     assert_eq!(leaves.len(), 2);
-    assert_eq!(leaves[0].as_i32(), 3);
-    assert_eq!(leaves[1].as_i32(), 4);
+    assert_eq!(leaves[0].id(), 3);
+    assert_eq!(leaves[1].id(), 4);
 }
 
 
@@ -170,13 +170,13 @@ fn test_non_binary() {
     assert!(props.connected);
     assert!(props.rooted);
     assert!(!props.binary);
-    assert!(graph.root().is_some_and(|val| val.as_i32() == 0));
+    assert!(graph.root().is_some_and(|val| val.id() == 0));
     let mut leaves = Vec::from_iter(graph.leaves().into_iter().map(|n| *n));
-    leaves.sort_by_key(Node::as_i32);
+    leaves.sort_by_key(Node::id);
     assert_eq!(leaves.len(), 3);
-    assert_eq!(leaves[0].as_i32(), 3);
-    assert_eq!(leaves[1].as_i32(), 4);
-    assert_eq!(leaves[2].as_i32(), 5);
+    assert_eq!(leaves[0].id(), 3);
+    assert_eq!(leaves[1].id(), 4);
+    assert_eq!(leaves[2].id(), 5);
 }
 
 #[test]
@@ -191,12 +191,12 @@ fn test_with_reticulation() {
     assert!(props.connected);
     assert!(props.rooted);
     assert!(props.binary);
-    assert!(graph.root().is_some_and(|val| val.as_i32() == 0));
+    assert!(graph.root().is_some_and(|val| val.id() == 0));
     let mut leaves = Vec::from_iter(graph.leaves().into_iter().map(|n| *n));
-    leaves.sort_by_key(Node::as_i32);
+    leaves.sort_by_key(Node::id);
     assert_eq!(leaves.len(), 2);
-    assert_eq!(leaves[0].as_i32(), 4);
-    assert_eq!(leaves[1].as_i32(), 5);
+    assert_eq!(leaves[0].id(), 4);
+    assert_eq!(leaves[1].id(), 5);
 }
 
 #[test]

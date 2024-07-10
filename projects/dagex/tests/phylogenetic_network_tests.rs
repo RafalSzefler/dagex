@@ -98,8 +98,8 @@ fn test_ok() {
     let network = result.unwrap();
     let taxa = network.taxa();
     assert_eq!(taxa.len(), 2);
-    assert_eq!(taxa.get(&Node::from(1)).unwrap().as_immutable_string(), &imm("a"));
-    assert_eq!(taxa.get(&Node::from(2)).unwrap().as_immutable_string(), &imm("xyz"));
+    assert_eq!(taxa.get(&Node::from(1)).unwrap().value(), &imm("a"));
+    assert_eq!(taxa.get(&Node::from(2)).unwrap().value(), &imm("xyz"));
 
     assert_eq!(leaves(&network), HashSet::from([Node::from(1), Node::from(2)]));
     assert_eq!(tree_nodes(&network), HashSet::from([Node::from(0)]));
@@ -113,7 +113,7 @@ fn test_ok() {
     assert!(props.rooted);
     assert!(props.tree);
     let root = graph.root().unwrap();
-    assert_eq!(root.as_i32(), 0);
+    assert_eq!(root.id(), 0);
     let network_root = network.root();
     assert_eq!(network_root, root);
 
@@ -125,7 +125,7 @@ fn test_ok() {
     assert_eq!(root, node0);
 
     let mut root_successors = Vec::from(graph.get_successors(node0));
-    root_successors.sort_by_key(|n| n.as_i32());
+    root_successors.sort_by_key(|n| n.id());
 
     assert_eq!(root_successors, &[node1, node2]);
     assert_eq!(graph.get_predecessors(node0).len(), 0);

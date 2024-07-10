@@ -56,6 +56,7 @@ impl GenesOverSpecies {
     ///   for each `gene_network` in `gene_networks`.
     /// * `gene_networks_by_id` is a mapping from `PhyologeneticNetworkId`
     ///   to the index of given network in `gene_networks`.
+    /// * `species_network` cannot contain leaves with duplicate taxa.
     pub unsafe fn new_unchecked(
         gene_networks: Vec<PhylogeneticNetwork>,
         gene_networks_by_id: HashMap<PhylogeneticNetworkId, i32>,
@@ -107,7 +108,7 @@ impl GenesOverSpecies {
     }
 
     #[inline(always)]
-    pub fn get_gene_networks(&self) -> &[PhylogeneticNetwork] {
+    pub fn gene_networks(&self) -> &[PhylogeneticNetwork] {
         &self.gene_networks
     }
 
@@ -126,7 +127,7 @@ impl GenesOverSpecies {
     }
 
     #[inline(always)]
-    pub fn get_species_network(&self) -> &PhylogeneticNetwork {
+    pub fn species_network(&self) -> &PhylogeneticNetwork {
         &self.species_network
     }
 }

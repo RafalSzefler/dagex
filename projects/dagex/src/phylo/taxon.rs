@@ -7,7 +7,7 @@ pub struct Taxon {
 
 impl Taxon {
     #[inline(always)]
-    pub fn as_immutable_string(&self) -> &ImmutableString {
+    pub fn value(&self) -> &ImmutableString {
         &self.value
     }
 }

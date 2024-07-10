@@ -12,7 +12,6 @@ impl PhylogeneticNetworkId {
     }
 }
 
-
 impl From<PhylogeneticNetworkId> for i32 {
     #[inline(always)]
     fn from(value: PhylogeneticNetworkId) -> Self {

@@ -114,8 +114,8 @@ impl DirectedGraph {
             let node = Node::from(idx);
             for successor in self.get_successors(node) {
                 let arrow = ArrowDTO::new(
-                    node.as_i32(), 
-                    successor.as_i32());
+                    node.id(), 
+                    successor.id());
                 arrows.push(arrow);
             }
         }
@@ -130,7 +130,7 @@ impl DirectedGraph {
     clippy::cast_sign_loss)]
 #[inline(always)]
 fn get_from_arrow_map(node: Node, arrow_map: &ArrowMap) -> &[Node] {
-    let numeric_id = node.as_i32();
+    let numeric_id = node.id();
     if numeric_id < 0 || numeric_id > (arrow_map.len() as i32) {
         _EMPTY
     }
@@ -404,7 +404,7 @@ fn verify_connected_remove_all_reachable(
     }
     seen.insert(node);
     reachable_nodes.remove(&node);
-    let idx = node.as_i32() as usize;
+    let idx = node.id() as usize;
 
     for pred in &predecessor_map[idx] {
         verify_connected_remove_all_reachable(
@@ -453,7 +453,7 @@ fn verify_acyclic_check_cycle(
         return true;
     }
 
-    let succs = &successors_map[node.as_i32() as usize];
+    let succs = &successors_map[node.id() as usize];
     if !succs.is_empty() {
         seen.insert(node);
         for successor in succs {
@@ -491,7 +491,7 @@ fn to_arrow_map(number_of_nodes: i32, map: &HashMap<Node, HashSet<Node>>)
     }
 
     for internal in &mut result {
-        internal.sort_by_key(Node::as_i32);
+        internal.sort_by_key(Node::id);
     }
 
     result
@@ -516,9 +516,11 @@ fn insert_node_to_arrow_map(
 
 impl PartialEq for DirectedGraph {
     fn eq(&self, other: &Self) -> bool {
-        self.hash_value == other.hash_value
+        self.id == other.id
+        || (
+            self.hash_value == other.hash_value
             && self.successors_map == other.successors_map
-            && self.predecessors_map == other.predecessors_map
+            && self.predecessors_map == other.predecessors_map)
     }
 }
 
