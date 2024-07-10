@@ -223,6 +223,7 @@ impl LogDataHolder {
         self.additional_data_mut().insert(key, value.into());
     }
 
+    #[allow(clippy::mut_from_ref)]
     fn additional_data_mut(&self) -> &mut HashMap<ImmutableString, SLObject> {
         let additional_data = unsafe {
             &mut *self.additional_data.get()

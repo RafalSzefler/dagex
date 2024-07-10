@@ -1,6 +1,7 @@
 use core::fmt::Debug;
+use std::sync::Arc;
 
-use structural_logging::traits::{StructuralLogger, StructuralLoggerFactory};
+use structural_logging::traits::StructuralLoggerFactory;
 
 /// Represents given algorithm's temporary data.
 pub trait Algorithm<'a>: Sized {
@@ -31,14 +32,14 @@ pub trait AlgorithmFactory: Sized {
 }
 
 pub trait AlgorithmFactoryBuilder: Sized + Default {
-    type Logger: StructuralLogger;
+    type LoggerFactory: StructuralLoggerFactory;
     type AlgoFactory: AlgorithmFactory;
     type Error: Debug;
 
     /// Sets `logger_factory` for internal usage of algorithm.
     fn set_logger_factory(
         &mut self,
-        logger_factory: Box<dyn StructuralLoggerFactory<Logger=Self::Logger>>);
+        logger_factory: &Arc<Self::LoggerFactory>);
 
     /// Creates a new [`AlgorithmFactory`].
     /// 

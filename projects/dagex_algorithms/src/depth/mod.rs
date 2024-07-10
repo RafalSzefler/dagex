@@ -1,8 +1,8 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, sync::Arc};
 
 use array::Array;
 use dagex::core::{DirectedGraph, Node};
-use structural_logging::{core::CoreLogger, traits::StructuralLoggerFactory};
+use structural_logging::core::CoreLoggerFactory;
 
 use crate::traits::{Algorithm, AlgorithmFactory, AlgorithmFactoryBuilder};
 
@@ -82,11 +82,7 @@ pub struct DepthAlgorithmFactory {
     _priv: PhantomData<()>,
 }
 
-impl DepthAlgorithmFactory {    
-    pub fn new() -> Self {
-        Self { _priv: PhantomData }
-    }
-
+impl DepthAlgorithmFactory {
     pub const fn max_size() -> usize { 1 << 30 }
 }
 
@@ -129,7 +125,7 @@ impl AlgorithmFactory for DepthAlgorithmFactory {
 pub struct DepthAlgorithmFactoryBuilder;
 
 impl AlgorithmFactoryBuilder for DepthAlgorithmFactoryBuilder {
-    type Logger = CoreLogger;
+    type LoggerFactory = CoreLoggerFactory;
 
     type AlgoFactory = DepthAlgorithmFactory;
 
@@ -137,11 +133,12 @@ impl AlgorithmFactoryBuilder for DepthAlgorithmFactoryBuilder {
 
     fn set_logger_factory(
         &mut self,
-        _logger_factory: Box<dyn StructuralLoggerFactory<Logger=Self::Logger>>)
+        _logger_factory: &Arc<Self::LoggerFactory>)
     {
     }
 
     fn create(self) -> Result<Self::AlgoFactory, Self::Error> {
-        Ok(DepthAlgorithmFactory::new())
+        let factory = DepthAlgorithmFactory { _priv: PhantomData };
+        Ok(factory)
     }
 }
