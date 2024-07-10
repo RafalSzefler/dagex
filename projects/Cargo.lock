@@ -113,6 +113,8 @@ dependencies = [
  "array",
  "dagex",
  "rstest",
+ "structural_logging",
+ "structural_logging_console",
 ]
 
 [[package]]

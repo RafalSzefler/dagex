@@ -1,5 +1,5 @@
 use dagex::core::{ArrowDTO, DirectedGraph, DirectedGraphDTO};
-use dagex_algorithms::{depth::DepthAlgorithmFactory, traits::{Algorithm, AlgorithmFactory}};
+use dagex_algorithms::{depth::DepthAlgorithmFactoryBuilder, traits::{Algorithm, AlgorithmFactory, AlgorithmFactoryBuilder}};
 use rstest::rstest;
 
 fn build_graph(arr: &[(i32, i32)]) -> DirectedGraph {
@@ -25,7 +25,8 @@ fn build_graph(arr: &[(i32, i32)]) -> DirectedGraph {
 #[case(&[(0, 1), (1, 2), (2, 3), (0, 4)], 3)]
 fn test_depth_algorithm(#[case] arrows: &[(i32, i32)], #[case] expected: i32) {
     let graph = build_graph(arrows);
-    let algo = DepthAlgorithmFactory::new().create(&graph).unwrap();
+    let mut factory = DepthAlgorithmFactoryBuilder::default().create().unwrap();
+    let algo = factory.create(&graph).unwrap();
     let result = algo.run().unwrap();
     assert_eq!(result.max_depth(), expected);
 }

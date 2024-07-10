@@ -2,8 +2,9 @@ use std::marker::PhantomData;
 
 use array::Array;
 use dagex::core::{DirectedGraph, Node};
+use structural_logging::{core::CoreLogger, traits::StructuralLoggerFactory};
 
-use crate::traits::{Algorithm, AlgorithmFactory};
+use crate::traits::{Algorithm, AlgorithmFactory, AlgorithmFactoryBuilder};
 
 pub struct DepthAlgorithm<'a> {
     graph: &'a DirectedGraph,
@@ -77,9 +78,15 @@ pub enum DepthInputValidationError {
     GraphTooBig,
 }
 
-pub struct DepthAlgorithmFactory { }
+pub struct DepthAlgorithmFactory {
+    _priv: PhantomData<()>,
+}
 
-impl DepthAlgorithmFactory {
+impl DepthAlgorithmFactory {    
+    pub fn new() -> Self {
+        Self { _priv: PhantomData }
+    }
+
     pub const fn max_size() -> usize { 1 << 30 }
 }
 
@@ -89,8 +96,6 @@ impl AlgorithmFactory for DepthAlgorithmFactory {
     type Algo<'a> = DepthAlgorithm<'a>;
 
     type Error = DepthInputValidationError;
-
-    fn new() -> Self { Self {} }
 
     #[allow(clippy::cast_sign_loss)]
     fn create<'a>(&mut self, input: Self::Input<'a>)
@@ -117,5 +122,26 @@ impl AlgorithmFactory for DepthAlgorithmFactory {
             graph: input,
             scanned_nodes: scanned_nodes,
         })
+    }
+}
+
+#[derive(Default)]
+pub struct DepthAlgorithmFactoryBuilder;
+
+impl AlgorithmFactoryBuilder for DepthAlgorithmFactoryBuilder {
+    type Logger = CoreLogger;
+
+    type AlgoFactory = DepthAlgorithmFactory;
+
+    type Error = ();
+
+    fn set_logger_factory(
+        &mut self,
+        _logger_factory: Box<dyn StructuralLoggerFactory<Logger=Self::Logger>>)
+    {
+    }
+
+    fn create(self) -> Result<Self::AlgoFactory, Self::Error> {
+        Ok(DepthAlgorithmFactory::new())
     }
 }

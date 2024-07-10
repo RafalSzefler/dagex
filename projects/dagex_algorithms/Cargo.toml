@@ -8,6 +8,8 @@ rust-version.workspace = true
 [dependencies]
 dagex = { path = "../dagex" }
 array = { path = "../utils/array" }
+structural_logging = { path = "../utils/structural_logging" }
+structural_logging_console = { path = "../utils/structural_logging_console" }
 
 [dev-dependencies]
 rstest = { workspace = true }
