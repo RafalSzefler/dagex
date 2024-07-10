@@ -6,7 +6,6 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-paste = { workspace = true }
 immutable_string = { path = "../immutable_string" }
 fnv1a_hasher = { path = "../fnv1a_hasher" }
 

@@ -22,12 +22,10 @@ rust-version = "1.78"
 [workspace.dependencies]
 termcolor = "1.4"
 chrono = "0.4.38"
-paste = "1.0"
 getrandom = "0.2"
 rand = "0.8.5"
 ctor = "0.2.8"
 smallvec = "1.13.2"
-fasthash = "0.4"
 rstest = "0.21.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
