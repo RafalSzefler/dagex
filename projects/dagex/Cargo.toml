@@ -6,8 +6,8 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-raf_fnv1a_hasher = { path = "../utils/raf_fnv1a_hasher" }
-raf_immutable_string = { path = "../utils/raf_immutable_string" }
+raf_fnv1a_hasher = { workspace = true }
+raf_immutable_string = { workspace = true }
 smallvec = { workspace = true }
 serde = { workspace = true, optional = true }
 

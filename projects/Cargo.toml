@@ -1,12 +1,5 @@
 [workspace]
 members = [
-    "utils/raf_array",
-    "utils/raf_tagged_pointer",
-    "utils/raf_fnv1a_hasher",
-    "utils/raf_immutable_string",
-    "utils/raf_multi_valued_logic",
-    "utils/raf_structural_logging",
-    "utils/raf_structural_logging_console",
     "dagex",
     "dagex_algorithms",
 ]
@@ -19,12 +12,14 @@ authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
 rust-version = "1.78"
 
 [workspace.dependencies]
-termcolor = "1.4"
-chrono = "0.4.38"
-getrandom = "0.2"
-rand = "0.8.5"
-ctor = "0.2.8"
-smallvec = "1.13.2"
-rstest = "0.21.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+smallvec = "1.13"
+rstest = "0.21"
+
+raf_fnv1a_hasher = { git = "https://github.com/RafalSzefler/raf_utils.git" }
+raf_immutable_string = { git = "https://github.com/RafalSzefler/raf_utils.git" }
+raf_array = { git = "https://github.com/RafalSzefler/raf_utils.git" }
+raf_structural_logging = { git = "https://github.com/RafalSzefler/raf_utils.git" }
+raf_structural_logging_console = { git = "https://github.com/RafalSzefler/raf_utils.git" }
+raf_multi_valued_logic = { git = "https://github.com/RafalSzefler/raf_utils.git" }
