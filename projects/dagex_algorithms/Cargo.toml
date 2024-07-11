@@ -6,13 +6,14 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+raf_array = { workspace = true }
+raf_immutable_string = { workspace = true }
+raf_structural_logging = { workspace = true }
+raf_structural_logging_console = { workspace = true }
+raf_fnv1a_hasher = { workspace = true }
+raf_multi_valued_logic = { workspace = true }
+
 dagex = { path = "../dagex" }
-raf_array = { path = "../utils/raf_array" }
-raf_immutable_string = { path = "../utils/raf_immutable_string" }
-raf_structural_logging = { path = "../utils/raf_structural_logging" }
-raf_structural_logging_console = { path = "../utils/raf_structural_logging_console" }
-raf_fnv1a_hasher = { path = "../utils/raf_fnv1a_hasher" }
-raf_multi_valued_logic = { path = "../utils/raf_multi_valued_logic" }
 
 [dev-dependencies]
 rstest = { workspace = true }
