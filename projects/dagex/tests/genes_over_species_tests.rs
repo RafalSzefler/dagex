@@ -1,7 +1,14 @@
 use std::collections::HashMap;
 
-use dagex::{core::{ArrowDTO, DirectedGraphDTO}, phylo::{GenesOverSpecies, GenesOverSpeciesFromResult, PhylogeneticNetwork, PhylogeneticNetworkDTO}};
-use immutable_string::ImmutableString;
+use dagex::{
+    core::{ArrowDTO, DirectedGraphDTO},
+    phylo::{
+        GenesOverSpecies,
+        GenesOverSpeciesFromResult,
+        PhylogeneticNetwork,
+        PhylogeneticNetworkDTO}};
+
+use raf_immutable_string::ImmutableString;
 
 
 fn build_network(arrows: &[(i32, i32)], taxa: &[(i32, &'static str)]) -> PhylogeneticNetwork {

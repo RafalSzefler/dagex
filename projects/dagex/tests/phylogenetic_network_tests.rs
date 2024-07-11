@@ -13,7 +13,7 @@ use dagex::{
         PhylogeneticNetworkFromResult
     }
 };
-use immutable_string::ImmutableString;
+use raf_immutable_string::ImmutableString;
 
 fn imm(text: &str) -> ImmutableString { ImmutableString::new(text).unwrap() }
 

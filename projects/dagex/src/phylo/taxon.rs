@@ -1,4 +1,4 @@
-use immutable_string::ImmutableString;
+use raf_immutable_string::ImmutableString;
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct Taxon {

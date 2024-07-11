@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::{PhylogeneticNetwork, PhylogeneticNetworkId, Taxon};
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct GenesOverSpecies {
     gene_networks: Vec<PhylogeneticNetwork>,
     gene_networks_by_id: HashMap<PhylogeneticNetworkId, i32>,
