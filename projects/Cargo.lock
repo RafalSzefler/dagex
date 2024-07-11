@@ -82,7 +82,7 @@ dependencies = [
 
 [[package]]
 name = "dagex"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "raf_fnv1a_hasher",
  "raf_immutable_string",
@@ -94,7 +94,7 @@ dependencies = [
 
 [[package]]
 name = "dagex_algorithms"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "dagex",
  "raf_array",
