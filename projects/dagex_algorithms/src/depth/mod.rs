@@ -1,8 +1,8 @@
 use std::{marker::PhantomData, sync::Arc};
 
-use array::Array;
+use raf_array::Array;
+use raf_structural_logging::core::CoreLoggerFactory;
 use dagex::core::{DirectedGraph, Node};
-use structural_logging::core::CoreLoggerFactory;
 
 use crate::traits::{Algorithm, AlgorithmFactory, AlgorithmFactoryBuilder};
 

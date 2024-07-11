@@ -7,9 +7,12 @@ rust-version.workspace = true
 
 [dependencies]
 dagex = { path = "../dagex" }
-array = { path = "../utils/array" }
-structural_logging = { path = "../utils/structural_logging" }
-structural_logging_console = { path = "../utils/structural_logging_console" }
+raf_array = { path = "../utils/raf_array" }
+raf_immutable_string = { path = "../utils/raf_immutable_string" }
+raf_structural_logging = { path = "../utils/raf_structural_logging" }
+raf_structural_logging_console = { path = "../utils/raf_structural_logging_console" }
+raf_fnv1a_hasher = { path = "../utils/raf_fnv1a_hasher" }
+raf_multi_valued_logic = { path = "../utils/raf_multi_valued_logic" }
 
 [dev-dependencies]
 rstest = { workspace = true }

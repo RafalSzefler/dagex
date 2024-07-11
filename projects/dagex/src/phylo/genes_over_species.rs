@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::{PhylogeneticNetwork, PhylogeneticNetworkId, Taxon};
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct GenesOverSpecies {
     gene_networks: Vec<PhylogeneticNetwork>,
     gene_networks_by_id: HashMap<PhylogeneticNetworkId, i32>,
@@ -140,4 +141,11 @@ fn has_valid_taxa(
     let gene_taxa: HashSet<Taxon>
         = gene_network.taxa().values().cloned().collect();
     gene_taxa.is_subset(species_taxa)
+}
+
+impl core::hash::Hash for GenesOverSpecies {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.gene_networks.hash(state);
+        self.species_network.hash(state);
+    }
 }

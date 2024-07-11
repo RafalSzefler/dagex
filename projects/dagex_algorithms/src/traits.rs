@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 use std::sync::Arc;
 
-use structural_logging::traits::StructuralLoggerFactory;
+use raf_structural_logging::traits::StructuralLoggerFactory;
 
 /// Represents given algorithm's temporary data.
 pub trait Algorithm<'a>: Sized {

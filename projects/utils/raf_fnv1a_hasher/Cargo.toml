@@ -1,0 +1,15 @@
+[package]
+name = "raf_fnv1a_hasher"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+ctor = { workspace = true, optional = true }
+getrandom = { workspace = true, optional = true }
+
+[features]
+default = ["ctor", "getrandom"]
+ctor = ["dep:ctor"]
+getrandom = ["dep:getrandom"]

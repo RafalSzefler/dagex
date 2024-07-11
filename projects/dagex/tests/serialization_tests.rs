@@ -1,7 +1,7 @@
 #![cfg(feature="serde")]
 
 use dagex::{core::{ArrowDTO, DirectedGraphDTO}, phylo::PhylogeneticNetworkDTO};
-use immutable_string::ImmutableString;
+use raf_immutable_string::ImmutableString;
 use rstest::rstest;
 
 #[rstest]
