@@ -21,7 +21,7 @@ impl From<DeserializeError> for NewickParseError {
             DeserializeError::FormatError(text)
                 => Self::ContentError(text),
             DeserializeError::GraphError(err) => {
-                let msg = format!("Invalid graph: {:?}", err);
+                let msg = format!("Invalid graph: {err:?}");
                 Self::ContentError(msg)
             },
             DeserializeError::InputError(err) => Self::InputError(err),
@@ -36,6 +36,12 @@ pub struct NewickParseOk {
 }
 
 impl NewickParser {
+    /// Parses [`PhylogeneticNetwork`] out of input stream.
+    /// 
+    /// # Errors
+    /// * [`NewickParseError::ContentError`] if invalid graph
+    /// * [`NewickParseError::InputError`] forwarded from underlying stream
+    /// * [`NewickParseError::Utf8`] if content is not a valid UTF-8 string
     pub fn parse<TRead: Read>(&mut self, input: &mut TRead)
         -> Result<NewickParseOk, NewickParseError>
     {

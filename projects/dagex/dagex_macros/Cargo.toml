@@ -1,5 +1,6 @@
 [package]
 name = "dagex_macros"
+version.workspace = true
 edition.workspace = true
 authors.workspace = true
 rust-version.workspace = true
