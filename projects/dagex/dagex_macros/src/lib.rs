@@ -8,11 +8,10 @@
     clippy::module_name_repetitions,
 )]
 
-#[doc(hidden)]
-extern crate dagex_impl;
+use proc_macro::TokenStream;
 
-#[doc(hidden)]
-extern crate dagex_macros;
-
-pub use dagex_impl::*;
-pub use dagex_macros::*;
+#[proc_macro]
+pub fn newick_to_dag(input: TokenStream) -> TokenStream {
+    let _ = input;
+    panic!("to be implemented");
+}

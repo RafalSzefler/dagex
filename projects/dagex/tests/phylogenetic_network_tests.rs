@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use dagex::{
+    raf_immutable_string::ImmutableString,
     core::{
         ArrowDTO,
         DirectedGraphDTO,
@@ -13,7 +14,6 @@ use dagex::{
         PhylogeneticNetworkFromResult
     }
 };
-use raf_immutable_string::ImmutableString;
 
 fn imm(text: &str) -> ImmutableString { ImmutableString::new(text).unwrap() }
 
@@ -65,26 +65,6 @@ fn test_empty_with_taxa() {
     
     let result = PhylogeneticNetwork::from_dto(&dto);
     assert!(matches!(result, PhylogeneticNetworkFromResult::GraphError(DirectedGraphFromResult::EmptyGraph)));
-}
-
-#[test]
-fn test_taxa_not_leaves_1() {
-    let dto = PhylogeneticNetworkDTO::new(
-        DirectedGraphDTO::new(1, Vec::new()),
-        HashMap::from_iter([(1, imm("test"))]));
-    
-    let result = PhylogeneticNetwork::from_dto(&dto);
-    assert!(matches!(result, PhylogeneticNetworkFromResult::TaxaNotLeaves(_)));
-}
-
-#[test]
-fn test_taxa_not_leaves_2() {
-    let dto = PhylogeneticNetworkDTO::new(
-        dg_dto(&[(0, 1)]),
-        HashMap::from_iter([(0, imm("test2"))]));
-    
-    let result = PhylogeneticNetwork::from_dto(&dto);
-    assert!(matches!(result, PhylogeneticNetworkFromResult::TaxaNotLeaves(_)));
 }
 
 #[test]

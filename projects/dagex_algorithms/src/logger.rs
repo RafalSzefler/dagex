@@ -1,6 +1,6 @@
 use std::{hash::Hasher, sync::{Arc, OnceLock}};
 
-use raf_immutable_string::ImmutableString;
+use dagex::raf_immutable_string::ImmutableString;
 use raf_structural_logging::{
     core::{CoreLoggerFactory, CoreLoggerFactoryBuilder},
     traits::StructuralLoggerFactoryBuilder};

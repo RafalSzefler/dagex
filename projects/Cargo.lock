@@ -84,12 +84,10 @@ dependencies = [
 name = "dagex"
 version = "0.0.5"
 dependencies = [
- "raf_fnv1a_hasher",
- "raf_immutable_string",
+ "dagex_impl",
+ "dagex_macros",
  "rstest",
- "serde",
  "serde_json",
- "smallvec",
 ]
 
 [[package]]
@@ -104,6 +102,24 @@ dependencies = [
  "raf_structural_logging",
  "raf_structural_logging_console",
  "rstest",
+]
+
+[[package]]
+name = "dagex_impl"
+version = "0.0.0"
+dependencies = [
+ "raf_fnv1a_hasher",
+ "raf_immutable_string",
+ "raf_newick",
+ "serde",
+ "smallvec",
+]
+
+[[package]]
+name = "dagex_macros"
+version = "0.0.0"
+dependencies = [
+ "dagex_impl",
 ]
 
 [[package]]
@@ -353,7 +369,7 @@ dependencies = [
 [[package]]
 name = "raf_array"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#832a0e991578cf5953e30da12a429ba198567da3"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
 dependencies = [
  "ctor",
 ]
@@ -361,7 +377,7 @@ dependencies = [
 [[package]]
 name = "raf_fnv1a_hasher"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#832a0e991578cf5953e30da12a429ba198567da3"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
 dependencies = [
  "ctor",
  "getrandom",
@@ -370,7 +386,7 @@ dependencies = [
 [[package]]
 name = "raf_immutable_string"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#832a0e991578cf5953e30da12a429ba198567da3"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
 dependencies = [
  "ctor",
  "raf_fnv1a_hasher",
@@ -380,15 +396,47 @@ dependencies = [
 [[package]]
 name = "raf_multi_valued_logic"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#832a0e991578cf5953e30da12a429ba198567da3"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
 dependencies = [
  "serde",
 ]
 
 [[package]]
+name = "raf_newick"
+version = "0.1.0"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
+dependencies = [
+ "raf_newick_impl",
+ "raf_newick_macros",
+]
+
+[[package]]
+name = "raf_newick_impl"
+version = "0.0.0"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
+dependencies = [
+ "ctor",
+ "raf_array",
+ "raf_fnv1a_hasher",
+ "raf_immutable_string",
+ "smallvec",
+]
+
+[[package]]
+name = "raf_newick_macros"
+version = "0.0.0"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "raf_newick_impl",
+ "syn",
+]
+
+[[package]]
 name = "raf_structural_logging"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#832a0e991578cf5953e30da12a429ba198567da3"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
 dependencies = [
  "raf_fnv1a_hasher",
  "raf_immutable_string",
@@ -397,7 +445,7 @@ dependencies = [
 [[package]]
 name = "raf_structural_logging_console"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#832a0e991578cf5953e30da12a429ba198567da3"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#58be09933eb9d5b99687e71cb1b5fbf5fd3736f7"
 dependencies = [
  "chrono",
  "raf_immutable_string",

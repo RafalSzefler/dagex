@@ -1,0 +1,11 @@
+[package]
+name = "dagex_macros"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+dagex_impl = { path = "../dagex_impl" }

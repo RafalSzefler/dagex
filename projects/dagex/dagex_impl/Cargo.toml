@@ -1,0 +1,12 @@
+[package]
+name = "dagex_impl"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+raf_fnv1a_hasher = { workspace = true }
+raf_immutable_string = { workspace = true }
+raf_newick = { workspace = true }
+smallvec = { workspace = true }
+serde = { workspace = true }

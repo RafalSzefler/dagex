@@ -1,7 +1,7 @@
 // use std::collections::HashMap;
 
 // use dagex::{core::{ArrowDTO, DirectedGraphDTO}, phylo::{PhylogeneticNetwork, PhylogeneticNetworkDTO}};
-// use immutable_string::ImmutableString;
+// use dagex::ImmutableString;
 
 
 // fn build_phylo(arr: &[(i32, i32)], taxa: &[(i32, &str)]) -> PhylogeneticNetwork {

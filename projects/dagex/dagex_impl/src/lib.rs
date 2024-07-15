@@ -9,10 +9,17 @@
 )]
 
 #[doc(hidden)]
-extern crate dagex_impl;
+pub extern crate raf_immutable_string;
 
 #[doc(hidden)]
-extern crate dagex_macros;
+pub mod macro_helpers;
 
-pub use dagex_impl::*;
-pub use dagex_macros::*;
+mod impl_serde;
+mod hashing;
+mod global_id;
+
+pub(crate) use global_id::GlobalId;
+pub(crate) use hashing::create_u32_hasher;
+
+pub mod core;
+pub mod phylo;

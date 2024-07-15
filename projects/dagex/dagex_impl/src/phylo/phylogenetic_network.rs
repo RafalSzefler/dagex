@@ -1,6 +1,6 @@
 use core::fmt::{Debug, Formatter};
 use core::hash::{Hash, Hasher};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::core::{DirectedGraph, DirectedGraphFromResult, Node};
 use crate::create_u32_hasher;
@@ -33,9 +33,6 @@ pub enum PhylogeneticNetworkFromResult {
 
     /// Leaves not of in-degree 1.
     LeavesNotOfInDegreeOne(DirectedGraph),
-
-    /// Taxa map contains nodes that are not leaves. Returns passed value.
-    TaxaNotLeaves(DirectedGraph),
 
     /// Internal error of graph construction. The internal value is guaranteed
     /// to not be [`DirectedGraphFromResult::Ok`].
@@ -119,16 +116,6 @@ impl PhylogeneticNetwork {
 
         if !props.binary {
             return PhylogeneticNetworkFromResult::NotBinary(graph);
-        }
-
-        let mut taxa_nodes: HashSet<Node> = taxa.keys().copied().collect();
-
-        for leaf in graph.leaves() {
-            taxa_nodes.remove(leaf);
-        }
-
-        if !taxa_nodes.is_empty() {
-            return PhylogeneticNetworkFromResult::TaxaNotLeaves(graph);
         }
 
         for leaf in graph.leaves() {
