@@ -2,7 +2,7 @@ use core::fmt::{Debug, Formatter};
 use core::hash::{Hash, Hasher};
 use std::collections::HashMap;
 
-use crate::core::{DirectedGraph, DirectedGraphFromResult, Node};
+use crate::core::{DirectedGraph, DirectedGraphFromError, Node};
 use crate::create_u32_hasher;
 
 use super::{PhylogeneticNetworkDTO, PhylogeneticNetworkId, Taxon};
@@ -18,44 +18,24 @@ pub struct PhylogeneticNetwork {
 
 
 #[derive(Debug)]
-pub enum PhylogeneticNetworkFromResult {
-    /// Passed graph is a phylogenetic network. Consumes passed value.
-    Ok(PhylogeneticNetwork),
-
+pub enum PhylogeneticNetworkFromError {
     /// Passed graph is not acyclic. Returns passed value.
-    NotAcyclic(DirectedGraph),
+    NotAcyclic,
 
     /// Passed graph is not rooted. Returns passed value.
-    NotRooted(DirectedGraph),
+    NotRooted,
 
     /// Passed graph is not binary. Returns passed value.
-    NotBinary(DirectedGraph),
+    NotBinary,
 
-    /// Leaves not of in-degree 1.
-    LeavesNotOfInDegreeOne(DirectedGraph),
-
-    /// Internal error of graph construction. The internal value is guaranteed
-    /// to not be [`DirectedGraphFromResult::Ok`].
-    GraphError(DirectedGraphFromResult),
+    /// Forwarded internal error of graph construction.
+    GraphError(DirectedGraphFromError),
 }
 
-impl PhylogeneticNetworkFromResult {
-    /// Unwraps [`PhylogeneticNetworkFromResult::Ok`] value.
-    /// 
-    /// # Panics
-    /// Only and always when `self` is not [`PhylogeneticNetworkFromResult::Ok`].
-    #[inline(always)]
-    pub fn unwrap(self) -> PhylogeneticNetwork {
-        if let PhylogeneticNetworkFromResult::Ok(network) = self {
-            network
-        }
-        else
-        {
-            let name = core::any::type_name::<PhylogeneticNetworkFromResult>();
-            panic!("{name} not Ok.");
-        }
-    }
+impl From<DirectedGraphFromError> for PhylogeneticNetworkFromError {
+    fn from(value: DirectedGraphFromError) -> Self { Self::GraphError(value) }
 }
+
 
 impl PhylogeneticNetwork {
     /// Constructs [`PhylogeneticNetwork`] directly.
@@ -98,52 +78,47 @@ impl PhylogeneticNetwork {
         Self { graph, taxa, id, hash_value }
     }
 
-    /// Safely constructs [`PhylogeneticNetwork`] directly and
+    /// Constructs [`PhylogeneticNetwork`] directly and
     /// calculates/verifies all associated invariants and properties.
+    /// 
+    /// # Errors
+    /// For the meaning of errors see [`PhylogeneticNetworkFromError`] docs.
     pub fn from_graph_and_taxa(
         graph: DirectedGraph,
         taxa: HashMap<Node, Taxon>)
-        -> PhylogeneticNetworkFromResult
+        -> Result<Self, PhylogeneticNetworkFromError>
     {
         let props = graph.basic_properties();
         if !props.acyclic {
-            return PhylogeneticNetworkFromResult::NotAcyclic(graph);
+            return Err(PhylogeneticNetworkFromError::NotAcyclic);
         }
 
         if !props.rooted {
-            return PhylogeneticNetworkFromResult::NotRooted(graph);
+            return Err(PhylogeneticNetworkFromError::NotRooted);
         }
 
         if !props.binary {
-            return PhylogeneticNetworkFromResult::NotBinary(graph);
+            return Err(PhylogeneticNetworkFromError::NotBinary);
         }
 
-        for leaf in graph.leaves() {
-            if graph.get_predecessors(*leaf).len() != 1 {
-                return PhylogeneticNetworkFromResult::LeavesNotOfInDegreeOne(graph);
-            }
-        }
-
-        unsafe {
-            PhylogeneticNetworkFromResult::Ok(
-                Self::from_unchecked(graph, taxa))
-        }
+        let network = unsafe { Self::from_unchecked(graph, taxa) };
+        Ok(network)
     }
 
-    pub fn from_dto(dto: &PhylogeneticNetworkDTO) -> PhylogeneticNetworkFromResult {
-        match DirectedGraph::from_dto(dto.graph()) {
-            DirectedGraphFromResult::Ok(graph) => {
-                let taxa: HashMap<Node, Taxon>
-                    = dto.taxa()
-                        .iter()
-                        .map(|kvp| (Node::from(*kvp.0), Taxon::from(kvp.1.clone())))
-                        .collect();
-                Self::from_graph_and_taxa(graph, taxa)
-            },
-            err => {
-                PhylogeneticNetworkFromResult::GraphError(err)
-            }
-        }
+    /// Constructs [`PhylogeneticNetwork`] out of [`PhylogeneticNetworkDTO`].
+    /// 
+    /// # Errors
+    /// For the meaning of errors see [`PhylogeneticNetworkFromError`] docs.
+    pub fn from_dto(dto: &PhylogeneticNetworkDTO)
+        -> Result<Self, PhylogeneticNetworkFromError>
+    {
+        let graph = DirectedGraph::from_dto(dto.graph())?;
+        let taxa: HashMap<Node, Taxon>
+            = dto.taxa()
+                .iter()
+                .map(|kvp| (Node::from(*kvp.0), Taxon::from(kvp.1.clone())))
+                .collect();
+        Self::from_graph_and_taxa(graph, taxa)
     }
 
     #[inline(always)]
