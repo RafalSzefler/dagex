@@ -320,9 +320,13 @@ impl DirectedGraph {
                 for (idx, internal) in vec.iter().enumerate() {
                     idx.hash(hasher);
                     internal.len().hash(hasher);
+                    let mut res = 0;
                     for node in internal {
-                        node.hash(hasher);
+                        let mut internal_hasher = create_u32_hasher();
+                        node.hash(&mut internal_hasher);
+                        res ^= internal_hasher.finish();
                     }
+                    res.hash(hasher);
                 }
             }
 

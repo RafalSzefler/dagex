@@ -10,7 +10,7 @@ pub use ok::*;
 
 use raf_newick::deserializer::deserialize;
 
-/// Parses Newick formatted string into [`PhylogeneticNetwork`].
+/// Parses Newick formatted stream into [`PhylogeneticNetwork`].
 /// 
 /// # Errors
 /// * [`NewickParseError::ContentError`] if invalid graph
@@ -27,4 +27,18 @@ pub fn parse_newick<TRead: Read>(input: &mut TRead)
         network: network,
         read_bytes: deserialize_ok.read_bytes,
     })
+}
+
+/// Parses Newick formatted `&str` into [`PhylogeneticNetwork`].
+/// 
+/// # Errors
+/// * [`NewickParseError::ContentError`] if invalid graph
+/// * [`NewickParseError::InputError`] forwarded from underlying stream
+/// * [`NewickParseError::Utf8`] if content is not a valid UTF-8 string
+#[inline(always)]
+pub fn parse_newick_from_str(input: &str)
+    -> Result<NewickParseOk, NewickParseError>
+{
+    let mut stream = input.as_bytes();
+    parse_newick(&mut stream)
 }
