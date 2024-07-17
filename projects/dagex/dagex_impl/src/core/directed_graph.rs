@@ -142,9 +142,7 @@ fn get_from_arrow_map(node: Node, arrow_map: &ArrowMap) -> &[Node] {
 
 
 #[derive(Debug)]
-pub enum DirectedGraphFromResult {
-    Ok(DirectedGraph),
-
+pub enum DirectedGraphFromError {
     /// Passed graph didn't have nodes.
     EmptyGraph,
 
@@ -161,23 +159,6 @@ pub enum DirectedGraphFromResult {
     ArrowOutsideOfNodesRange(ArrowDTO),
 }
 
-impl DirectedGraphFromResult {
-    /// Unwraps [`DirectedGraphFromResult::Ok`] value.
-    /// 
-    /// # Panics
-    /// Only and always when `self` is not [`DirectedGraphFromResult::Ok`].
-    #[inline(always)]
-    pub fn unwrap(self) -> DirectedGraph {
-        if let DirectedGraphFromResult::Ok(graph) = self {
-            graph
-        }
-        else
-        {
-            let name = core::any::type_name::<DirectedGraphFromResult>();
-            panic!("{name} not Ok.");
-        }
-    }
-}
 
 impl DirectedGraph {
     /// Creates new [`DirectedGraph`] out of [`DirectedGraphDTO`].
@@ -185,15 +166,15 @@ impl DirectedGraph {
     /// # Errors
     /// For specific errors read [`DirectedGraphFromResult`] docs.
     pub fn from_dto(value: &DirectedGraphDTO)
-        -> DirectedGraphFromResult
+        -> Result<Self, DirectedGraphFromError>
     {
         let number_of_nodes = value.number_of_nodes();
         if number_of_nodes <= 0 {
-            return DirectedGraphFromResult::EmptyGraph;
+            return Err(DirectedGraphFromError::EmptyGraph);
         }
 
         if number_of_nodes > Self::max_size() {
-            return DirectedGraphFromResult::TooBigGraph;
+            return Err(DirectedGraphFromError::TooBigGraph);
         }
 
         let mut successor_map_duplicates 
@@ -217,7 +198,7 @@ impl DirectedGraph {
 
         for arrow in arrows {
             if multi_arrows.contains(arrow) {
-                return DirectedGraphFromResult::MultipleParallelArrows(arrow.clone());
+                return Err(DirectedGraphFromError::MultipleParallelArrows(arrow.clone()));
             }
             multi_arrows.insert(arrow.clone());
             let source = arrow.source();
@@ -227,7 +208,7 @@ impl DirectedGraph {
                 || target < 0
                 || target >= number_of_nodes
             {
-                return DirectedGraphFromResult::ArrowOutsideOfNodesRange(arrow.clone());
+                return Err(DirectedGraphFromError::ArrowOutsideOfNodesRange(arrow.clone()));
             }
             let source_node = Node::from(source);
             let target_node = Node::from(target);
@@ -298,7 +279,7 @@ impl DirectedGraph {
         let dg = unsafe {
             Self::new_unchecked(number_of_nodes, successors_map, predecessors_map, properties, root_node, leaves)
         };
-        DirectedGraphFromResult::Ok(dg)
+        Ok(dg)
     }
 
     /// Creates an unchecked [`DirectedGraph`].
@@ -330,18 +311,21 @@ impl DirectedGraph {
             root_node: Option<Node>,
             leaves: HashSet<Node>) -> Self
     {
-        let hash: u32;
-
-        {
+        #[allow(clippy::cast_possible_truncation)]
+        let hash = {
             fn update_vec<T: Hasher>(vec: &[SmallVec<[Node; 2]>], hasher: &mut T)
             {
                 vec.len().hash(hasher);
                 for (idx, internal) in vec.iter().enumerate() {
                     idx.hash(hasher);
                     internal.len().hash(hasher);
+                    let mut res = 0;
                     for node in internal {
-                        node.hash(hasher);
+                        let mut internal_hasher = create_u32_hasher();
+                        node.hash(&mut internal_hasher);
+                        res ^= internal_hasher.finish();
                     }
+                    res.hash(hasher);
                 }
             }
 
@@ -349,12 +333,8 @@ impl DirectedGraph {
             number_of_nodes.hash(&mut hasher);
             update_vec(&successors_map, &mut hasher);
             update_vec(&predecessors_map, &mut hasher);
-
-            #[allow(clippy::cast_possible_truncation)]
-            {
-                hash = hasher.finish() as u32;
-            }
-        }
+            hasher.finish() as u32
+        };
 
         Self {
             id: GraphId::generate_next(),
@@ -519,6 +499,7 @@ impl PartialEq for DirectedGraph {
         self.id == other.id
         || (
             self.hash_value == other.hash_value
+            && self.number_of_nodes == other.number_of_nodes
             && self.successors_map == other.successors_map
             && self.predecessors_map == other.predecessors_map)
     }
@@ -550,8 +531,11 @@ impl Clone for DirectedGraph {
 impl Debug for DirectedGraph {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DirectedGraph")
-            .field("id", &i32::from(self.id))
+            .field("id", &self.id)
             .field("number_of_nodes", &self.number_of_nodes)
+            .field("hash_value", &self.hash_value)
+            .field("successors_map", &self.successors_map)
+            .field("predecessors_map", &self.predecessors_map)
             .finish()
     }
 }

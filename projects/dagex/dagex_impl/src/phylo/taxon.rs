@@ -6,6 +6,10 @@ pub struct Taxon {
 }
 
 impl Taxon {
+    /// Constructs new [`Taxon`] out of `&str`.
+    /// 
+    /// # Errors
+    /// [`ConstructionError`] forwarded from [`ImmutableString::new()`].
     pub fn new(text: &str) -> Result<Self, ConstructionError> {
         let imm = ImmutableString::new(text)?;
         Ok(Self { value: imm })
