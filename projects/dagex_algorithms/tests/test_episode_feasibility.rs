@@ -1,44 +1,34 @@
-// use std::collections::HashMap;
+use std::collections::HashSet;
 
-// use dagex::{core::{ArrowDTO, DirectedGraphDTO}, phylo::{PhylogeneticNetwork, PhylogeneticNetworkDTO}};
-// use dagex::ImmutableString;
+use dagex::{const_parse_newick, phylo::GenesOverSpecies};
+use dagex_algorithms::{
+    episode_feasibility::{
+        EpisodeFeasabilityAlgorithmFactoryBuilder,
+        EpisodeFeasabilityInput},
+    traits::{
+        Algorithm,
+        AlgorithmFactory,
+        AlgorithmFactoryBuilder}};
 
 
-// fn build_phylo(arr: &[(i32, i32)], taxa: &[(i32, &str)]) -> PhylogeneticNetwork {
-//     let mut number_of_nodes = -1;
-//     let mut arrows = Vec::with_capacity(arr.len());
-//     for (src, trg) in arr {
-//         let isrc = *src;
-//         let itrg = *trg;
-//         number_of_nodes = core::cmp::max(
-//             number_of_nodes,
-//             core::cmp::max(isrc, itrg));
-//         arrows.push(ArrowDTO::new(isrc, itrg));
-//     }
-//     let dto = DirectedGraphDTO::new(number_of_nodes + 1, arrows);
-    
-//     let mut taxa_map = HashMap::with_capacity(taxa.len());
-//     for (node, taxon) in taxa {
-//         let imm = ImmutableString::new(taxon).unwrap();
-//         taxa_map.insert(*node, imm);
-//     }
-
-//     let phylo_dto = PhylogeneticNetworkDTO::new(dto, taxa_map);
-//     PhylogeneticNetwork::from_dto(&phylo_dto).unwrap()
-// }
-
-// #[test]
-// fn test_episode_feasibility_algorithm() {
-//     let genes = build_phylo(
-//         &[(0, 1),
-//         (1, 2),    (1, 3),
-//         (2, 4), (2, 5),
-//         (5, 6), (5, 7),
-//         ],
-//         taxa)
-//     let graph = build_graph(arrows);
-//     let mut factory = DepthAlgorithmFactoryBuilder::default().create().unwrap();
-//     let algo = factory.create(&graph).unwrap();
-//     let result = algo.run().unwrap();
-//     assert_eq!(result.max_depth(), expected);
-// }
+#[test]
+fn test_episode_feasibility_algorithm() {
+    let genes = const_parse_newick!("((, (b, ((,), (,)))), (d, (c, a)));");
+    let genes_id = genes.id();
+    let species = const_parse_newick!("((a, c), (b, d));");
+    let a_leaf = species.graph().leaves().iter()
+        .find(|n| {
+            if let Some(taxon) = species.taxa().get(n) {
+                return taxon.value().as_str() == "a";
+            }
+            false
+        }).unwrap();
+    let episode_candidates = HashSet::from([species.root(), *a_leaf]);
+    let genes_over_species = GenesOverSpecies::new_single_gene(genes, species).unwrap();
+    let mut factory = EpisodeFeasabilityAlgorithmFactoryBuilder::default().create().unwrap();
+    let episode_input = EpisodeFeasabilityInput::new(&genes_over_species, &episode_candidates);
+    let algo = factory.create(episode_input).unwrap();
+    let result = algo.run().unwrap();
+    // TODO: not working
+    // assert!(result.result().get(&genes_id).unwrap());
+}

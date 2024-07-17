@@ -9,42 +9,23 @@ pub struct GenesOverSpecies {
     species_network: PhylogeneticNetwork,
 }
 
-pub enum GenesOverSpeciesFromResult {
-    /// Correct [`GenesOverSpecies`] object.
-    Ok(GenesOverSpecies),
-
+#[derive(Debug)]
+pub enum GenesOverSpeciesNewError {
     /// Collection of gene networks is empty. This is not allowed.
-    EmptyGeneNetworks(Vec<PhylogeneticNetwork>, PhylogeneticNetwork),
+    EmptyGeneNetworks,
 
     /// Incorrect taxa on some gene network, i.e. not a subset of species
     /// network's taxa. Attached values are returned parameters.
-    IncorrectTaxa(Vec<PhylogeneticNetwork>, PhylogeneticNetwork),
+    IncorrectTaxa,
 
     /// Collection of gene networks contains duplicate networks, or at least
     /// networks with duplicate ids. This is not allowed.
-    DuplicatedIds(Vec<PhylogeneticNetwork>, PhylogeneticNetwork),
+    DuplicatedIds,
 
     /// Species network cannot have differen leaves with the same taxon.
-    SpeciesContainsTaxaDuplicates(Vec<PhylogeneticNetwork>, PhylogeneticNetwork),
+    SpeciesContainsTaxaDuplicates,
 }
 
-impl GenesOverSpeciesFromResult {
-    /// Unwraps [`GenesOverSpeciesFromResult::Ok`] value.
-    /// 
-    /// # Panics
-    /// Only and always when `self` is not [`GenesOverSpeciesFromResult::Ok`].
-    #[inline(always)]
-    pub fn unwrap(self) -> GenesOverSpecies {
-        if let GenesOverSpeciesFromResult::Ok(genes_over_species) = self {
-            genes_over_species
-        }
-        else
-        {
-            let name = core::any::type_name::<GenesOverSpeciesFromResult>();
-            panic!("{name} not Ok.");
-        }
-    }
-}
 
 impl GenesOverSpecies {
     /// Creates an unchecked [`GenesOverSpecies`].
@@ -66,19 +47,24 @@ impl GenesOverSpecies {
         Self { gene_networks, gene_networks_by_id, species_network }
     }
 
-    pub fn from_networks(
+    /// Creates new instance of [`GenesOverSpecies`] from list of gene networks
+    /// and single species network.
+    /// 
+    /// # Errors
+    /// For concrete errors see [`GenesOverSpeciesNewError`] docs.
+    pub fn new(
         gene_networks: Vec<PhylogeneticNetwork>,
-        species_network: PhylogeneticNetwork) -> GenesOverSpeciesFromResult
+        species_network: PhylogeneticNetwork) -> Result<GenesOverSpecies, GenesOverSpeciesNewError>
     {
         if gene_networks.is_empty() {
-            return GenesOverSpeciesFromResult::EmptyGeneNetworks(gene_networks, species_network);
+            return Err(GenesOverSpeciesNewError::EmptyGeneNetworks);
         }
 
         let species_taxa_map = species_network.taxa();
         let mut species_taxa = HashSet::<Taxon>::with_capacity(species_taxa_map.len());
         for taxon in species_taxa_map.values() {
             if !species_taxa.insert(taxon.clone()) {
-                return GenesOverSpeciesFromResult::SpeciesContainsTaxaDuplicates(gene_networks, species_network);
+                return Err(GenesOverSpeciesNewError::SpeciesContainsTaxaDuplicates);
             }
         }
 
@@ -87,10 +73,10 @@ impl GenesOverSpecies {
         #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
         for (idx, gene_network) in gene_networks.iter().enumerate() {
             if !has_valid_taxa(gene_network, &species_taxa) {
-                return GenesOverSpeciesFromResult::IncorrectTaxa(gene_networks, species_network);
+                return Err(GenesOverSpeciesNewError::IncorrectTaxa);
             }
             if by_id.insert(gene_network.id(), idx as i32).is_some() {
-                return GenesOverSpeciesFromResult::DuplicatedIds(gene_networks, species_network);
+                return Err(GenesOverSpeciesNewError::DuplicatedIds);
             }
         }
 
@@ -98,14 +84,19 @@ impl GenesOverSpecies {
             Self::new_unchecked(gene_networks, by_id, species_network)
         };
 
-        return GenesOverSpeciesFromResult::Ok(result);
+        Ok(result)
     }
 
-    pub fn from_single_network(
+    /// Creates new instance of [`GenesOverSpecies`] from single gene and species
+    /// networks.
+    /// 
+    /// # Errors
+    /// For concrete errors see [`GenesOverSpeciesNewError`] docs.
+    pub fn new_single_gene(
         gene_network: PhylogeneticNetwork,
-        species_network: PhylogeneticNetwork) -> GenesOverSpeciesFromResult
+        species_network: PhylogeneticNetwork) -> Result<GenesOverSpecies, GenesOverSpeciesNewError>
     {
-        Self::from_networks(vec![gene_network], species_network)
+        Self::new(vec![gene_network], species_network)
     }
 
     #[inline(always)]

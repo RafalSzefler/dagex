@@ -5,7 +5,7 @@ use dagex::{
     core::{ArrowDTO, DirectedGraphDTO},
     phylo::{
         GenesOverSpecies,
-        GenesOverSpeciesFromResult,
+        GenesOverSpeciesNewError,
         PhylogeneticNetwork,
         PhylogeneticNetworkDTO}};
 
@@ -41,7 +41,7 @@ fn test_valid_taxa_1() {
         &[(1, "Test"), (2, "baz")]);
     let species_network_id = species_network.id();
     let genes_over_species 
-        = GenesOverSpecies::from_single_network(genes_network, species_network)
+        = GenesOverSpecies::new_single_gene(genes_network, species_network)
             .unwrap();
     
     let genes = genes_over_species.gene_networks();
@@ -62,7 +62,7 @@ fn test_valid_taxa_2() {
         &[(1, "Test")]);
     let species_network_id = species_network.id();
     let genes_over_species 
-        = GenesOverSpecies::from_single_network(genes_network, species_network)
+        = GenesOverSpecies::new_single_gene(genes_network, species_network)
             .unwrap();
     
     let genes = genes_over_species.gene_networks();
@@ -79,8 +79,8 @@ fn test_invalid_taxa() {
     let species = build_network(
         &[(0, 1), (0, 2), (2, 3)],
         &[(1, "Baz")]);
-    let genes_over_species = GenesOverSpecies::from_single_network(genes, species);
-    assert!(matches!(genes_over_species, GenesOverSpeciesFromResult::IncorrectTaxa(_, _)));
+    let genes_over_species = GenesOverSpecies::new_single_gene(genes, species);
+    assert!(matches!(genes_over_species, Err(GenesOverSpeciesNewError::IncorrectTaxa)));
 }
 
 #[test]
@@ -91,6 +91,6 @@ fn test_taxa_duplicates() {
     let species = build_network(
         &[(0, 1), (0, 2), (2, 3)],
         &[(1, "Baz"), (3, "Baz")]);
-    let genes_over_species = GenesOverSpecies::from_single_network(genes, species);
-    assert!(matches!(genes_over_species, GenesOverSpeciesFromResult::SpeciesContainsTaxaDuplicates(_, _)));
+    let genes_over_species = GenesOverSpecies::new_single_gene(genes, species);
+    assert!(matches!(genes_over_species, Err(GenesOverSpeciesNewError::SpeciesContainsTaxaDuplicates)));
 }
