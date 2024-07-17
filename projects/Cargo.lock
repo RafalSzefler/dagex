@@ -120,6 +120,9 @@ name = "dagex_macros"
 version = "0.0.5"
 dependencies = [
  "dagex_impl",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

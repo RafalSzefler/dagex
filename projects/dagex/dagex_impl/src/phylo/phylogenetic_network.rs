@@ -47,7 +47,7 @@ impl PhylogeneticNetwork {
     /// * `taxa` has to map leaves only.
     /// * `taxa` cannot contain duplicate nodes.
     #[inline(always)]
-    pub unsafe fn from_unchecked(
+    pub unsafe fn new_unchecked(
         graph: DirectedGraph,
         taxa: HashMap<Node, Taxon>) -> Self
     {
@@ -101,7 +101,7 @@ impl PhylogeneticNetwork {
             return Err(PhylogeneticNetworkFromError::NotBinary);
         }
 
-        let network = unsafe { Self::from_unchecked(graph, taxa) };
+        let network = unsafe { Self::new_unchecked(graph, taxa) };
         Ok(network)
     }
 
@@ -200,7 +200,7 @@ impl Hash for PhylogeneticNetwork {
 impl Clone for PhylogeneticNetwork {
     fn clone(&self) -> Self {
         unsafe {
-            Self::from_unchecked(
+            Self::new_unchecked(
                 self.graph.clone(),
                 self.taxa.clone())
         }
@@ -214,6 +214,7 @@ impl Debug for PhylogeneticNetwork {
         f.debug_struct("PhylogeneticNetwork")
             .field("id", &i32::from(self.id))
             .field("graph_id", &i32::from(graph_id))
+            .field("taxa_len", &self.taxa().len())
             .field("hash_value", &self.hash_value)
             .finish()
     }

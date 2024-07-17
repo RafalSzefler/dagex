@@ -311,9 +311,8 @@ impl DirectedGraph {
             root_node: Option<Node>,
             leaves: HashSet<Node>) -> Self
     {
-        let hash: u32;
-
-        {
+        #[allow(clippy::cast_possible_truncation)]
+        let hash = {
             fn update_vec<T: Hasher>(vec: &[SmallVec<[Node; 2]>], hasher: &mut T)
             {
                 vec.len().hash(hasher);
@@ -334,12 +333,8 @@ impl DirectedGraph {
             number_of_nodes.hash(&mut hasher);
             update_vec(&successors_map, &mut hasher);
             update_vec(&predecessors_map, &mut hasher);
-
-            #[allow(clippy::cast_possible_truncation)]
-            {
-                hash = hasher.finish() as u32;
-            }
-        }
+            hasher.finish() as u32
+        };
 
         Self {
             id: GraphId::generate_next(),
@@ -504,6 +499,7 @@ impl PartialEq for DirectedGraph {
         self.id == other.id
         || (
             self.hash_value == other.hash_value
+            && self.number_of_nodes == other.number_of_nodes
             && self.successors_map == other.successors_map
             && self.predecessors_map == other.predecessors_map)
     }
@@ -535,8 +531,11 @@ impl Clone for DirectedGraph {
 impl Debug for DirectedGraph {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DirectedGraph")
-            .field("id", &i32::from(self.id))
+            .field("id", &self.id)
             .field("number_of_nodes", &self.number_of_nodes)
+            .field("hash_value", &self.hash_value)
+            .field("successors_map", &self.successors_map)
+            .field("predecessors_map", &self.predecessors_map)
             .finish()
     }
 }
