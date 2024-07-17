@@ -177,6 +177,12 @@ impl PhylogeneticNetwork {
     pub fn is_leaf(&self, node: Node) -> bool {
         self.graph.is_leaf(node)
     }
+
+    pub fn iter_by_taxon<'a>(&'a self, taxon: &'a str) -> impl Iterator<Item=Node> + 'a {
+        self.taxa.iter()
+            .filter(move |p| p.1.value().as_str() == taxon)
+            .map(|p| *p.0)
+    }
 }
 
 impl PartialEq for PhylogeneticNetwork {
