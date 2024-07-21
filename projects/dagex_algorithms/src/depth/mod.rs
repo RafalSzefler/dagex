@@ -112,7 +112,9 @@ impl AlgorithmFactory for DepthAlgorithmFactory {
             return Err(DepthInputValidationError::GraphTooBig);
         }
 
-        let scanned_nodes = Array::new_with_fill(no, &mut || -1);
+        #[inline(always)]
+        fn factory() -> i32 { -1 }
+        let scanned_nodes: Array<i32> = Array::new_with_fill(no, factory);
 
         Ok(DepthAlgorithm {
             graph: input,

@@ -86,7 +86,7 @@ impl<'a> FormulaData<'a> {
         TriBool::FALSE
     }
 
-    fn epsilon(&self, gene_node: Node, species_node: Node) -> TriBool {
+    pub fn epsilon(&self, gene_node: Node, species_node: Node) -> TriBool {
         let sigma_result = self.sigma(gene_node, species_node);
         if sigma_result == TriBool::TRUE {
             return TriBool::TRUE;
@@ -95,7 +95,7 @@ impl<'a> FormulaData<'a> {
         sigma_result.or(delta_result)
     }
 
-    fn delta_star(&self, gene_node: Node, species_node: Node) -> TriBool {
+    pub fn delta_star(&self, gene_node: Node, species_node: Node) -> TriBool {
         let gene_successors = self.genes.graph().get_successors(gene_node);
         let gene_successors_len = gene_successors.len();
         assert!(gene_successors_len == 2, "Expected 2 gene successors, got {gene_successors_len}.");

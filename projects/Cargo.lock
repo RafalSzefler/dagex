@@ -40,9 +40,9 @@ checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
 name = "cc"
-version = "1.1.5"
+version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "324c74f2155653c90b04f25b2a47a8a631360cb908f92a772695f430c7e31052"
+checksum = "2aba8f4e9906c7ce3c73463f62a7f0c65183ada1a2d47e397cc8810827f9694f"
 
 [[package]]
 name = "cfg-if"
@@ -372,7 +372,7 @@ dependencies = [
 [[package]]
 name = "raf_array"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "ctor",
 ]
@@ -380,7 +380,7 @@ dependencies = [
 [[package]]
 name = "raf_fnv1a_hasher"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "ctor",
  "getrandom",
@@ -389,7 +389,7 @@ dependencies = [
 [[package]]
 name = "raf_immutable_string"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "ctor",
  "raf_fnv1a_hasher",
@@ -399,7 +399,7 @@ dependencies = [
 [[package]]
 name = "raf_multi_valued_logic"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "serde",
 ]
@@ -407,7 +407,7 @@ dependencies = [
 [[package]]
 name = "raf_newick"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "raf_newick_impl",
  "raf_newick_macros",
@@ -416,7 +416,7 @@ dependencies = [
 [[package]]
 name = "raf_newick_impl"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "ctor",
  "raf_array",
@@ -428,7 +428,7 @@ dependencies = [
 [[package]]
 name = "raf_newick_macros"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -439,7 +439,7 @@ dependencies = [
 [[package]]
 name = "raf_structural_logging"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "raf_fnv1a_hasher",
  "raf_immutable_string",
@@ -448,7 +448,7 @@ dependencies = [
 [[package]]
 name = "raf_structural_logging_console"
 version = "0.1.0"
-source = "git+https://github.com/RafalSzefler/raf_utils.git#1102da6679ca6f13c6b2b1b59d6fffa1b1952046"
+source = "git+https://github.com/RafalSzefler/raf_utils.git#3d3eabef8d823a4fc027ec8092382737855ae4c6"
 dependencies = [
  "chrono",
  "raf_immutable_string",
