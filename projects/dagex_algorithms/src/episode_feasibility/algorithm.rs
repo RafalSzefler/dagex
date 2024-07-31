@@ -38,34 +38,8 @@ impl<'a> Algorithm<'a> for EpisodeFeasabilityAlgorithm<'a> {
             let gene_root = gene_network.root();
             let calc_result = formula_data.delta_down(gene_root, species_root);
             result.insert(gene_network.id(), calc_result == TriBool::TRUE);
-
-            let spec_node = species_root;
-            for gene_node in gene_network.graph().iter_nodes() {
-                let id = gene_node.id();
-                let taxa = gene_network.taxa().get(&gene_node);
-                let yyy = if let Some(v) = taxa {
-                    v.value().as_str()
-                } else {
-                    ""
-                };
-                let x = sss(formula_data.delta(gene_node, spec_node));
-                let y = sss(formula_data.delta_down(gene_node, spec_node));
-                let z = sss(formula_data.sigma(gene_node, spec_node));
-                let v = sss(formula_data.epsilon(gene_node, spec_node));
-                let text = format!("[{id}] [{yyy}] {x}{y}{z}{v}");
-                println!("{text}");
-            }
         }
         
         Ok(Self::Output::new(result))
-    }
-}
-
-fn sss(b: TriBool) -> char {
-    match b {
-        TriBool::TRUE => 'T',
-        TriBool::UNKNOWN => 'U',
-        TriBool::FALSE => 'F',
-        _ => 'X',
     }
 }

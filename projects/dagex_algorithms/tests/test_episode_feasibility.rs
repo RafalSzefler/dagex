@@ -17,7 +17,7 @@ fn test_episode_feasibility_algorithm() {
     assert_eq!(genes.graph().leaves().len(), 9);
     assert_eq!(genes.taxa().len(), 4);
     let genes_id = genes.id();
-    let species = const_parse_newick!("((a, c)ac, (b, d)bd)acbd;");
+    let species = const_parse_newick!("((a, c), (b, d));");
     assert_eq!(species.graph().leaves().len(), 4);
     assert_eq!(species.taxa().len(), 4);
     let a_leaf = species.iter_by_taxon("a").next().unwrap();
