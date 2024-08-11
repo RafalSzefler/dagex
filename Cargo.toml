@@ -20,6 +20,7 @@ proc-macro2 = "1.0"
 quote = "1.0"
 syn = "2.0"
 
+raf_readonly = { git = "https://github.com/RafalSzefler/raf_utils.git", version = "0.1" }
 raf_fnv1a_hasher = { git = "https://github.com/RafalSzefler/raf_utils.git", version = "0.1" }
 raf_array = { git = "https://github.com/RafalSzefler/raf_utils.git", version = "0.1" }
 raf_structural_logging = { git = "https://github.com/RafalSzefler/raf_utils.git", version = "0.1" }

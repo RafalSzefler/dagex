@@ -6,6 +6,7 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+raf_readonly = { workspace = true }
 raf_fnv1a_hasher = { workspace = true }
 raf_array = { workspace = true }
 raf_newick = { workspace = true }

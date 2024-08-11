@@ -119,6 +119,7 @@ dependencies = [
  "raf_array",
  "raf_fnv1a_hasher",
  "raf_newick",
+ "raf_readonly",
  "serde",
  "smallvec",
 ]
