@@ -57,18 +57,20 @@ impl<'a> FormulaData<'a> {
     pub fn sigma(&self, gene_node: Node, species_node: Node) -> TriBool {
         let genes = &self.genes;
         let species = &self.species;
-        if genes.is_tree_node(gene_node) && species.is_tree_node(species_node) {
-            for gene_successor in genes.graph().get_successors(gene_node) {
-                for species_successor in species.graph().get_successors(species_node) {
-                    let calculated = self
-                        .delta_down(*gene_successor, *species_successor)
-                        .is_certain();
-                    if calculated == TriBool::FALSE {
-                        return TriBool::FALSE;
-                    }
-                }
-            }
-            return TriBool::TRUE;
+        if !genes.is_leaf(gene_node) && !species.is_leaf(species_node) {
+            let gsucc = genes.graph().get_successors(gene_node);
+            let ssucc = species.graph().get_successors(species_node);
+            assert_eq!(gsucc.len(), 2, "Internal gene node has to have two successors.");
+            assert_eq!(ssucc.len(), 2, "Internal species node has to have two successors.");
+            let left_g = gsucc[0];
+            let right_g = gsucc[1];
+            let left_s = ssucc[0];
+            let right_s = ssucc[1];
+            let left_delta = self.delta_down(left_g, left_s)
+                .and(self.delta_down(right_g, right_s));
+            let right_delta = self.delta_down(left_g, right_s)
+                .and(self.delta_down(right_g, left_s));
+            return left_delta.or(right_delta).is_certain();
         }
 
         if genes.is_leaf(gene_node) && species.is_leaf(species_node) {
