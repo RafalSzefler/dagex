@@ -4,7 +4,7 @@ use std::collections::{hash_map::Entry, HashMap};
 use dagex_impl::{
     core::{DirectedGraph, Node},
     phylo::{PhylogeneticNetwork, Taxon},
-    raf_immutable_string::ImmutableString,
+    raf_array::immutable_string::ImmutableString,
 };
 use proc_macro2::TokenStream;
 use quote::quote;

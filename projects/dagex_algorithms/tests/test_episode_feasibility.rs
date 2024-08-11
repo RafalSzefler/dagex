@@ -29,6 +29,5 @@ fn test_episode_feasibility_algorithm() {
     let episode_input = EpisodeFeasabilityInput::new(&genes_over_species, &episode_candidates);
     let algo = factory.create(episode_input).unwrap();
     let result = algo.run().unwrap();
-    // TODO: not working
-    // assert!(result.result().get(&genes_id).unwrap());
+    assert!(result.result().get(&genes_id).unwrap());
 }

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use dagex::{
-    raf_immutable_string::ImmutableString,
+    raf_array::immutable_string::ImmutableString,
     core::{
         ArrowDTO,
         DirectedGraphDTO,

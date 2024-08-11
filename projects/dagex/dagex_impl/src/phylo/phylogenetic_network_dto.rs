@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::raf_immutable_string::ImmutableString;
+use crate::raf_array::immutable_string::ImmutableString;
 
 use crate::core::DirectedGraphDTO;
 

@@ -10,6 +10,9 @@ pub use ok::*;
 
 use raf_newick::deserializer::deserialize;
 
+#[allow(unused_imports)]
+use crate::phylo::PhylogeneticNetwork;
+
 /// Parses Newick formatted stream into [`PhylogeneticNetwork`].
 /// 
 /// # Errors

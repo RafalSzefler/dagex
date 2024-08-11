@@ -1,4 +1,4 @@
-use crate::raf_immutable_string::{ImmutableString, ConstructionError};
+use crate::raf_array::immutable_string::{ImmutableString, NewImmutableStringError};
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct Taxon {
@@ -9,8 +9,8 @@ impl Taxon {
     /// Constructs new [`Taxon`] out of `&str`.
     /// 
     /// # Errors
-    /// [`ConstructionError`] forwarded from [`ImmutableString::new()`].
-    pub fn new(text: &str) -> Result<Self, ConstructionError> {
+    /// [`NewImmutableStringError`] forwarded from [`ImmutableString::new()`].
+    pub fn new(text: &str) -> Result<Self, NewImmutableStringError> {
         let imm = ImmutableString::new(text)?;
         Ok(Self { value: imm })
     }

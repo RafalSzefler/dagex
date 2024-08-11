@@ -146,7 +146,7 @@ pub enum DirectedGraphFromError {
     /// Passed graph didn't have nodes.
     EmptyGraph,
 
-    /// Graph size exceeded [`DirectedGraph::get_max_size()`].
+    /// Graph size exceeded [`DirectedGraph::max_size()`].
     TooBigGraph,
 
     /// Graph has multiple arrows between fixed (A, B) nodes. Returns the first
@@ -164,7 +164,7 @@ impl DirectedGraph {
     /// Creates new [`DirectedGraph`] out of [`DirectedGraphDTO`].
     /// 
     /// # Errors
-    /// For specific errors read [`DirectedGraphFromResult`] docs.
+    /// For specific errors read [`DirectedGraphFromError`] docs.
     pub fn from_dto(value: &DirectedGraphDTO)
         -> Result<Self, DirectedGraphFromError>
     {

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::raf_immutable_string::ImmutableString;
+use crate::raf_array::immutable_string::ImmutableString;
 use serde::{de::{self, Visitor}, ser::SerializeStruct, Deserialize, Serialize};
 
 use crate::{core::DirectedGraphDTO, phylo::PhylogeneticNetworkDTO};
@@ -15,9 +15,9 @@ impl Serialize for PhylogeneticNetworkDTO {
     where
         S: serde::Serializer
     {
-        let mut taxa_content: Vec<(i32, &ImmutableString)> = self.taxa()
+        let mut taxa_content: Vec<(i32, &str)> = self.taxa()
             .iter()
-            .map(|p| (*p.0, p.1))
+            .map(|p| (*p.0, p.1.as_str()))
             .collect();
         taxa_content.sort_by(|l, r| l.0.cmp(&r.0));
         let mut state = serializer.serialize_struct(STRUCT_NAME, 3)?;
@@ -45,7 +45,11 @@ impl<'de> Visitor<'de> for DirectedGraphDTOVisitor {
     {
         let no = seq.next_element()?.unwrap();
         let arrows = seq.next_element()?.unwrap();
-        let taxa = seq.next_element()?.unwrap();
+        let raw_taxa: HashMap<i32, String> = seq.next_element()?.unwrap();
+        let taxa = raw_taxa.iter()
+            .map(|kvp| { (*kvp.0, ImmutableString::new(kvp.1.as_str()).unwrap()) })
+            .collect();
+        
         Ok(PhylogeneticNetworkDTO::new(DirectedGraphDTO::new(no, arrows), taxa))
     }
 
@@ -74,7 +78,11 @@ impl<'de> Visitor<'de> for DirectedGraphDTOVisitor {
                     if raw_taxa.is_some() {
                         return Err(de::Error::duplicate_field(TAXA_FIELD));
                     }
-                    raw_taxa = Some(map.next_value()?);
+                    let tmp_taxa = map.next_value::<Vec<(i32, String)>>()?;
+                    let taxa_iter = tmp_taxa.into_iter()
+                        .map(|kvp| { (kvp.0, ImmutableString::new(kvp.1.as_str()).unwrap()) })
+                        .collect();
+                    raw_taxa = Some(taxa_iter);
                 },
                 _ => { }
             }

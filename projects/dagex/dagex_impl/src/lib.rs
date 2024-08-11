@@ -9,7 +9,7 @@
 )]
 
 #[doc(hidden)]
-pub extern crate raf_immutable_string;
+pub extern crate raf_array;
 
 #[doc(hidden)]
 pub mod macro_helpers;

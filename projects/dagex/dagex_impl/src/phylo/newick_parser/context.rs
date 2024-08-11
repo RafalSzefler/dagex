@@ -1,6 +1,7 @@
 use std::collections::{hash_map::Entry, HashMap, HashSet};
 
-use raf_immutable_string::ImmutableString;
+use crate::raf_array::immutable_string::ImmutableString;
+
 use raf_newick::ast::{NewickGraph, NewickNodeId};
 
 use crate::{core::{ArrowDTO, DirectedGraphDTO}, phylo::{PhylogeneticNetwork, PhylogeneticNetworkDTO}};
@@ -73,7 +74,7 @@ impl<'a> NewickParseContext<'a> {
             };
 
             let node_name = node.name().as_immutable_string();
-            if !node_name.is_empty() {
+            if !node_name.as_str().is_empty() {
                 if let Some(old_value) = self.taxa.insert(idx, node_name.clone()) {
                     if &old_value != node_name {
                         perr!("Conflict in node names, likely two reticulation entries have different name but point to the same id.");

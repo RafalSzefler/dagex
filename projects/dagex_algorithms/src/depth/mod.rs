@@ -1,6 +1,6 @@
 use std::{marker::PhantomData, sync::Arc};
 
-use raf_array::Array;
+use dagex::raf_array::array::Array;
 use raf_structural_logging::core::CoreLoggerFactory;
 use dagex::core::{DirectedGraph, Node};
 

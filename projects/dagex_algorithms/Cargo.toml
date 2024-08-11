@@ -6,8 +6,6 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-raf_array = { workspace = true }
-raf_immutable_string = { workspace = true }
 raf_structural_logging = { workspace = true }
 raf_structural_logging_console = { workspace = true }
 raf_fnv1a_hasher = { workspace = true }
